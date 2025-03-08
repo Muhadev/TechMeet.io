@@ -1,0 +1,129 @@
+<!-- templates/auth/oauth_test.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Test Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 15px; margin: 10px; cursor: pointer; font-size: 16px; background-color: #4285f4; color: white; border: none; border-radius: 4px; }
+        button.github { background-color: #333; }
+        .result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; border-radius: 4px; }
+        .hidden { display: none; }
+        h1 { color: #333; }
+        .button-container { margin: 20px 0; }
+        .debug-info { margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>TechMeet.io OAuth Test Client</h1>
+    <p>Use the buttons below to test OAuth authentication with Google and GitHub.</p>
+    
+    <div class="button-container">
+        <button onclick="startGoogleAuth()">Login with Google</button>
+        <button class="github" onclick="startGithubAuth()">Login with GitHub</button>
+    </div>
+    
+    <div id="result" class="result hidden">
+        <h3>Authentication Results:</h3>
+        <pre id="resultContent"></pre>
+    </div>
+    
+    <div class="debug-info">
+        <h3>Debugging Information</h3>
+        <p>Callback URLs should be configured as:</p>
+        <ul>
+            <li>Google: <code>http://localhost:8000/api/auth/google/callback/</code></li>
+            <li>GitHub: <code>http://localhost:8000/api/auth/github/callback/</code></li>
+        </ul>
+        <p>If you're experiencing issues, check:</p>
+        <ul>
+            <li>Your OAuth Provider settings match these callback URLs</li>
+            <li>Your Django settings.py has these callback URLs</li>
+            <li>Your ALLOWED_HOSTS setting includes 'localhost'</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Replace with your actual values
+        const backendUrl = 'http://localhost:8000';
+        
+        function startGoogleAuth() {
+            window.location.href = `${backendUrl}/api/auth/google/redirect/`;
+        }
+
+        function startGithubAuth() {
+            window.location.href = `${backendUrl}/api/auth/github/redirect/`;
+        }
+        
+        // Function to extract auth tokens from URL hash or query parameters
+        function parseAuthResponse() {
+            const result = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            
+            // Check for tokens in hash (fragment)
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            
+            // Check for tokens in query parameters
+            const queryParams = new URLSearchParams(window.location.search);
+            
+            // Check for access_token in hash
+            if (hashParams.has('access_token')) {
+                result.classList.remove('hidden');
+                const accessToken = hashParams.get('access_token');
+                const tokenType = hashParams.get('token_type') || 'Bearer';
+                const expiresIn = hashParams.get('expires_in') || 'unknown';
+                
+                resultContent.textContent = JSON.stringify({
+                    status: 'success',
+                    access_token: accessToken,
+                    token_type: tokenType,
+                    expires_in: expiresIn
+                }, null, 2);
+                
+                // Store token in localStorage for potential future use
+                localStorage.setItem('auth_token', accessToken);
+                localStorage.setItem('token_type', tokenType);
+                
+                return true;
+            }
+            
+            // Check for code in query parameters (OAuth authorization code flow)
+            if (queryParams.has('code')) {
+                result.classList.remove('hidden');
+                const code = queryParams.get('code');
+                const state = queryParams.get('state') || 'none';
+                
+                resultContent.textContent = JSON.stringify({
+                    status: 'received authorization code',
+                    code: code,
+                    state: state,
+                    message: 'Backend should be processing this code to get tokens.'
+                }, null, 2);
+                
+                return true;
+            }
+            
+            // Check for error
+            if (queryParams.has('error')) {
+                result.classList.remove('hidden');
+                resultContent.textContent = JSON.stringify({
+                    status: 'error',
+                    error: queryParams.get('error'),
+                    error_description: queryParams.get('error_description') || 'No description provided'
+                }, null, 2);
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Run when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Parse auth response if present
+            parseAuthResponse();
+        });
+    </script>
+</body>
+</html>
