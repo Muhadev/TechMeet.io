@@ -1,0 +1,84 @@
+<!-- templates/emails/organizer_request_update.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Organizer Request Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .approved {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .rejected {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .pending {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Organizer Request Update</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{ user_name }},</p>
+            
+            <p>The status of your request to become an event organizer has been updated.</p>
+            
+            <p>Current status: 
+                {% if status == 'APPROVED' %}
+                    <span class="approved">APPROVED</span>
+                {% elif status == 'REJECTED' %}
+                    <span class="rejected">REJECTED</span>
+                {% else %}
+                    <span class="pending">PENDING</span>
+                {% endif %}
+            </p>
+            
+            {% if status == 'APPROVED' %}
+                <p>Congratulations! You now have organizer privileges. You can create and manage events on our platform.</p>
+            {% endif %}
+            
+            {% if admin_notes %}
+                <h3>Admin Notes:</h3>
+                <p>{{ admin_notes }}</p>
+            {% endif %}
+            
+            <a href="{{ dashboard_url }}" class="button">Go to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

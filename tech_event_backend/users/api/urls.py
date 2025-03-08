@@ -15,7 +15,12 @@ from .views import (
     GithubCallbackView,  # Add this import
     PasswordResetRequestView,
     PasswordResetConfirmView,
-    OAuthTestView
+    OAuthTestView,
+    request_organizer_role,
+    organizer_request_status,
+    list_organizer_requests,
+    approve_organizer_request,
+    reject_organizer_request,
 )
 
 urlpatterns = [
@@ -45,4 +50,12 @@ urlpatterns = [
 
     # OAuth test page
     path('oauth-test/', OAuthTestView.as_view(), name='oauth_test'),
+
+    path('request-organizer/', request_organizer_role, name='request-organizer'),
+    path('organizer-request-status/', organizer_request_status, name='organizer-request-status'),
+    
+    # Admin endpoints for managing requests
+    path('admin/organizer-requests/', list_organizer_requests, name='list-organizer-requests'),
+    path('admin/organizer-requests/<int:request_id>/approve/', approve_organizer_request, name='approve-organizer-request'),
+    path('admin/organizer-requests/<int:request_id>/reject/', reject_organizer_request, name='reject-organizer-request'),
 ]

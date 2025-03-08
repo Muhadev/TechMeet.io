@@ -27,3 +27,4 @@ sqlparse==0.5.3
 starkbank-ecdsa==2.2.0
 typing-extensions==4.12.2
 urllib3==2.2.3
+django-filter

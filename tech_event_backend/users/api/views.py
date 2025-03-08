@@ -25,6 +25,13 @@ from django.http import HttpResponseRedirect
 from allauth.socialaccount.providers.oauth2.views import OAuth2Adapter
 from allauth.socialaccount.models import SocialApp
 import requests
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
+from users.models import OrganizerRequest
 
 from .serializers import (
     UserSerializer, RegisterSerializer, PasswordResetRequestSerializer,
@@ -255,3 +262,187 @@ class GithubCallbackView(APIView):
         token_data = response.json()
         redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={token_data.get('access_token')}"
         return HttpResponseRedirect(redirect_url)
+
+# users/api/views.py
+# Move these functions outside the class
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def request_organizer_role(request):
+    """
+    Endpoint for users to request promotion from ATTENDEE to ORGANIZER role.
+    Requires additional information like organization name and description.
+    Admins will need to approve these requests.
+    """
+    user = request.user
+    
+    # Check if user is already an organizer or admin
+    if user.role in ['ORGANIZER', 'ADMIN']:
+        return Response(
+            {"error": "You already have organizer or admin privileges."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Validate required fields
+    required_fields = ['organization_name', 'organization_description', 'reason_for_request']
+    missing_fields = [field for field in required_fields if field not in request.data]
+    
+    if missing_fields:
+        return Response(
+            {"error": f"Missing required fields: {', '.join(missing_fields)}"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Create organizer request
+    OrganizerRequest.objects.create(
+        user=user,
+        organization_name=request.data['organization_name'],
+        organization_description=request.data['organization_description'],
+        reason_for_request=request.data['reason_for_request'],
+        status='PENDING'
+    )
+    
+    return Response(
+        {"message": "Your request to become an organizer has been submitted and is pending approval."},
+        status=status.HTTP_201_CREATED
+    )
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def organizer_request_status(request):
+    """
+    Endpoint for users to check the status of their organizer role requests
+    """
+    user = request.user
+    
+    # Get the user's most recent request
+    try:
+        latest_request = OrganizerRequest.objects.filter(user=user).latest('created_at')
+        return Response({
+            "status": latest_request.status,
+            "created_at": latest_request.created_at,
+            "updated_at": latest_request.updated_at,
+            "admin_notes": latest_request.admin_notes if latest_request.admin_notes else None
+        })
+    except OrganizerRequest.DoesNotExist:
+        return Response(
+            {"message": "You haven't made any requests to become an organizer yet."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+# Admin endpoints for managing promotion requests
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_organizer_requests(request):
+    """
+    Endpoint for admins to view all pending organizer requests
+    """
+    if request.user.role != 'ADMIN':
+        return Response(
+            {"error": "Only administrators can access this endpoint."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Get all pending requests
+    requests = OrganizerRequest.objects.filter(status='PENDING')
+    data = []
+    
+    for req in requests:
+        data.append({
+            "id": req.id,
+            "user_id": req.user.id,
+            "user_email": req.user.email,
+            "user_name": f"{req.user.first_name} {req.user.last_name}",
+            "organization_name": req.organization_name,
+            "organization_description": req.organization_description,
+            "reason_for_request": req.reason_for_request,
+            "created_at": req.created_at
+        })
+    
+    return Response(data)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def approve_organizer_request(request, request_id):
+    """
+    Endpoint for admins to approve an organizer request
+    """
+    if request.user.role != 'ADMIN':
+        return Response(
+            {"error": "Only administrators can access this endpoint."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        org_request = OrganizerRequest.objects.get(id=request_id)
+        
+        # Make sure the request is still pending
+        if org_request.status != 'PENDING':
+            return Response(
+                {"error": f"This request has already been {org_request.status.lower()}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update the request
+        org_request.status = 'APPROVED'
+        org_request.admin_notes = request.data.get('admin_notes', '')
+        org_request.updated_at = timezone.now()
+        org_request.save()
+        
+        # Update the user's role
+        user = org_request.user
+        user.role = 'ORGANIZER'
+        user.save()
+        
+        # TODO: Send email notification to user
+        
+        return Response(
+            {"message": f"User {user.email} has been promoted to ORGANIZER role."}
+        )
+        
+    except OrganizerRequest.DoesNotExist:
+        return Response(
+            {"error": "Request not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reject_organizer_request(request, request_id):
+    """
+    Endpoint for admins to reject an organizer request
+    """
+    if request.user.role != 'ADMIN':
+        return Response(
+            {"error": "Only administrators can access this endpoint."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    try:
+        org_request = OrganizerRequest.objects.get(id=request_id)
+        
+        # Make sure the request is still pending
+        if org_request.status != 'PENDING':
+            return Response(
+                {"error": f"This request has already been {org_request.status.lower()}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update the request
+        org_request.status = 'REJECTED'
+        org_request.admin_notes = request.data.get('admin_notes', '')
+        org_request.updated_at = timezone.now()
+        org_request.save()
+        
+        # TODO: Send email notification to user
+        
+        return Response(
+            {"message": f"The organizer request for user {org_request.user.email} has been rejected."}
+        )
+        
+    except OrganizerRequest.DoesNotExist:
+        return Response(
+            {"error": "Request not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )

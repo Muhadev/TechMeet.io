@@ -57,12 +57,14 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    'django_filters',
     
     # Local apps
     'users',
     'core',
     'events',
     'tickets',
+    'payments',
 ]
 
 # User model
@@ -131,6 +133,11 @@ GOOGLE_CALLBACK_URL = 'http://localhost:8000/api/auth/google/callback'  # For de
 # GOOGLE_CALLBACK_URL = 'https://yourdomain.com/api/auth/google/callback'  # For production
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+# Paystack settings
+PAYSTACK_SECRET_KEY = 'sk_test_yoursecretkeyhere'  # Replace with your test secret key
+PAYSTACK_PUBLIC_KEY = 'pk_test_yourpublickeyhere'  # Replace with your test public key
+PAYSTACK_CALLBACK_URL = 'http://localhost:3000/payment/verify'  # Frontend callback URL
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
