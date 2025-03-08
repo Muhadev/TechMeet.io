@@ -1,0 +1,7 @@
+# Sensitive files
+tech_event_backend/.env
+tech_event_backend/.env.bak
+tech_event_backend/jwt_secret.txt
+tech_event_backend/venv/
+**/__pycache__/
+*.pyc
