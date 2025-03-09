@@ -13,7 +13,7 @@ class EventSerializer(serializers.ModelSerializer):
             'location', 'start_date', 'end_date', 'category', 'banner_image',
             'max_attendees', 'ticket_price', 'status', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'organizer']
     
     def create(self, validated_data):
         # Ensure the user creating the event is either an admin or organizer

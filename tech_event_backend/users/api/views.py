@@ -264,7 +264,6 @@ class GithubCallbackView(APIView):
         return HttpResponseRedirect(redirect_url)
 
 # users/api/views.py
-# Move these functions outside the class
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -306,7 +305,7 @@ def request_organizer_role(request):
         {"message": "Your request to become an organizer has been submitted and is pending approval."},
         status=status.HTTP_201_CREATED
     )
-    
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def organizer_request_status(request):

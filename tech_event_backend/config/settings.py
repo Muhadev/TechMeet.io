@@ -135,9 +135,9 @@ GOOGLE_CALLBACK_URL = 'http://localhost:8000/api/auth/google/callback'  # For de
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 # Paystack settings
-PAYSTACK_SECRET_KEY = 'sk_test_yoursecretkeyhere'  # Replace with your test secret key
-PAYSTACK_PUBLIC_KEY = 'pk_test_yourpublickeyhere'  # Replace with your test public key
-PAYSTACK_CALLBACK_URL = 'http://localhost:3000/payment/verify'  # Frontend callback URL
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
+PAYSTACK_CALLBACK_URL = os.environ.get('PAYSTACK_CALLBACK_URL', 'http://localhost:3000/payment/verify')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

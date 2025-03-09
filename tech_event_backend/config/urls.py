@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/auth/', include('users.api.urls')),
     path('api/events/', include('events.api.urls')),
     path('api/tickets/', include('tickets.api.urls')),
+    path('api/payments/', include('payments.api.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
