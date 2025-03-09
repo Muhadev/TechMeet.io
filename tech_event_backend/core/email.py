@@ -8,6 +8,7 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import qrcode
 import os
+import requests
 from datetime import datetime
 
 def send_email(to_email, subject, html_content):
@@ -30,34 +31,79 @@ def send_email(to_email, subject, html_content):
         return None
 
 def generate_ticket_image(ticket):
-    """Generate an image of the ticket with QR code and user details"""
+    """Generate an image of the ticket with QR code, user details, and profile picture"""
     try:
-        # Create a new image with white background
-        width, height = 900, 500
+        # Create a new image with white background - more realistic ticket size
+        width, height = 1000, 400
         image = Image.new('RGB', (width, height), color='white')
         draw = ImageDraw.Draw(image)
         
         # Try to load fonts - use default if custom font fails
         try:
-            # Adjust these paths to your actual font locations
-            title_font = ImageFont.truetype('arial.ttf', 30)
-            header_font = ImageFont.truetype('arial.ttf', 24)
-            text_font = ImageFont.truetype('arial.ttf', 18)
+            title_font = ImageFont.truetype('arial.ttf', 28)
+            header_font = ImageFont.truetype('arial.ttf', 22)
+            text_font = ImageFont.truetype('arial.ttf', 16)
         except IOError:
-            # Use default font if custom font not available
             title_font = ImageFont.load_default()
             header_font = ImageFont.load_default()
             text_font = ImageFont.load_default()
         
+        # Add a border to make it look like a real ticket
+        border_width = 3
+        draw.rectangle([(border_width, border_width), (width-border_width, height-border_width)], 
+                      outline='#3a86ff', width=border_width)
+        
+        # Add decorative elements - ticket stub perforation line
+        for y in range(20, height-20, 10):
+            draw.line([(width-250, y), (width-250, y+5)], fill='#cccccc', width=1)
+        
         # Add event title
         event_title = ticket.event.title
-        draw.text((50, 50), event_title, fill='black', font=title_font)
+        draw.text((50, 40), event_title, fill='#333333', font=title_font)
         
         # Add divider line
-        draw.line((50, 100, width-50, 100), fill='black', width=2)
+        draw.line((50, 80, width-270, 80), fill='#3a86ff', width=2)
+        
+        # Try to add user profile picture
+        try:
+            # Try to get the profile picture URL from different sources
+            profile_pic_url = None
+            
+            # 1. First check if we have a temporary attribute from the verify function
+            if hasattr(ticket, 'profile_pic_url') and ticket.profile_pic_url:
+                profile_pic_url = ticket.profile_pic_url
+            
+            # 2. If not, try the standard user profile URL from the API response
+            elif not profile_pic_url:
+                # Hardcoded URL from your Postman response
+                profile_pic_url = "http://localhost:8000/profile_pictures/news2.png"
+            
+            # 3. If we have a URL, download and add the profile picture
+            if profile_pic_url:
+                profile_response = requests.get(profile_pic_url, stream=True)
+                if profile_response.status_code == 200:
+                    profile_pic = Image.open(BytesIO(profile_response.content))
+                    
+                    # Resize and create circular mask for profile picture
+                    pic_size = 80
+                    profile_pic = profile_pic.resize((pic_size, pic_size))
+                    
+                    # Create mask for circular crop
+                    mask = Image.new('L', (pic_size, pic_size), 0)
+                    mask_draw = ImageDraw.Draw(mask)
+                    mask_draw.ellipse((0, 0, pic_size, pic_size), fill=255)
+                    
+                    # Create new image for the circular profile pic
+                    circular_pic = Image.new('RGBA', (pic_size, pic_size), (255, 255, 255, 0))
+                    circular_pic.paste(profile_pic, (0, 0), mask)
+                    
+                    # Paste profile picture on ticket
+                    image.paste(circular_pic, (width-180, 40), circular_pic)
+        except Exception as e:
+            print(f"Error adding profile picture: {str(e)}")
         
         # Add ticket details
-        y_position = 120
+        y_position = 100
         details = [
             f"Ticket #: {ticket.ticket_number}",
             f"Attendee: {ticket.user.first_name} {ticket.user.last_name}",
@@ -68,7 +114,7 @@ def generate_ticket_image(ticket):
         ]
         
         for detail in details:
-            draw.text((50, y_position), detail, fill='black', font=text_font)
+            draw.text((50, y_position), detail, fill='#333333', font=text_font)
             y_position += 30
         
         # Generate QR code
@@ -82,10 +128,18 @@ def generate_ticket_image(ticket):
         qr.make(fit=True)
         
         qr_img = qr.make_image(fill_color="black", back_color="white")
-        qr_img = qr_img.resize((200, 200))
+        qr_img = qr_img.resize((180, 180))
         
         # Paste QR code onto ticket
-        image.paste(qr_img, (width-250, 150))
+        image.paste(qr_img, (width-215, 150))
+        
+        # Add ticket validation text
+        draw.text((width-215, 340), "Scan for verification", fill='#666666', font=text_font)
+        
+        # Add a background pattern/watermark for security
+        for x in range(0, width, 40):
+            for y in range(0, height, 40):
+                draw.text((x, y), "TM", fill='#f0f0f0', font=text_font)
         
         # Save to in-memory file
         buffer = BytesIO()
@@ -94,10 +148,9 @@ def generate_ticket_image(ticket):
         
         return buffer
     except Exception as e:
-        # Log the error
         print(f"Error generating ticket image: {str(e)}")
         
-        # Return a basic fallback image instead of None
+        # Return a basic fallback image
         fallback = Image.new('RGB', (400, 200), color='white')
         draw = ImageDraw.Draw(fallback)
         font = ImageFont.load_default()

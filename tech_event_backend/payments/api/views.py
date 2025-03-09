@@ -83,6 +83,18 @@ class PaymentViewSet(viewsets.ModelViewSet):
                             ticket.payment_status = 'COMPLETED'
                             ticket.save()
                             
+                            # Get the profile picture URL from the user
+                            profile_pic_url = None
+                            if hasattr(ticket.user, 'profile_picture') and ticket.user.profile_picture:
+                                # Try different ways to get the URL
+                                if hasattr(ticket.user.profile_picture, 'url'):
+                                    profile_pic_url = request.build_absolute_uri(ticket.user.profile_picture.url)
+                                elif isinstance(ticket.user.profile_picture, str):
+                                    profile_pic_url = ticket.user.profile_picture
+                            
+                            # Attach the profile URL to the ticket as a temporary attribute
+                            ticket.profile_pic_url = profile_pic_url
+                            
                             # Send confirmation email with ticket
                             send_ticket_confirmation(ticket)
                             
