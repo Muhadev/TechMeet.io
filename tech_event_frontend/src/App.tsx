@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Routes } from './routes';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from './components/ui/toaster';
 
 function App() {
   const [loading, setLoading] = useState(true);

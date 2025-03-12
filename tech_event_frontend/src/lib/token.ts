@@ -1,6 +1,6 @@
 // src/lib/token.ts
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'event_access_token';
