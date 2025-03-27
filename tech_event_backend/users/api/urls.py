@@ -11,8 +11,8 @@ from .views import (
     GithubLogin,
     GoogleAuthRedirectView,
     GithubAuthRedirectView,
-    GoogleCallbackView,  # Add this import
-    GithubCallbackView,  # Add this import
+    GoogleCallbackView,
+    GithubCallbackView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
     OAuthTestView,

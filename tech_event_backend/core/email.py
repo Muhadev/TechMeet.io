@@ -13,7 +13,6 @@ from datetime import datetime
 
 def send_email(to_email, subject, html_content):
     """Helper function to send an email using SendGrid"""
-    # No changes needed here
     message = Mail(
         from_email=settings.DEFAULT_FROM_EMAIL,
         to_emails=to_email,

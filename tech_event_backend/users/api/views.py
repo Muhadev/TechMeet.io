@@ -115,7 +115,7 @@ class PasswordResetRequestView(APIView):
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
-    authentication_classes = []  # Add this line to disable authentication for this view
+    authentication_classes = []  # to disable authentication for this view
     serializer_class = PasswordResetConfirmSerializer
     
     def post(self, request, uidb64, token):
@@ -143,7 +143,6 @@ class PasswordResetConfirmView(APIView):
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Add this new view
 class OAuthTestView(TemplateView):
     template_name = 'auth/oauth_test.html'
 
@@ -182,8 +181,6 @@ class GithubAuthRedirectView(RedirectView):
             f"scope=user user:email"
         )
         return auth_url
-
-# Add these imports
 
 class GoogleCallbackView(APIView):
     permission_classes = [permissions.AllowAny]

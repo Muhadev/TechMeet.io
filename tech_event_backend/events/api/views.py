@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
-from django.utils import timezone  # Add this import
+from django.utils import timezone
 from events.models import Event
 from tickets.models import Ticket
 from .serializers import EventSerializer, EventListSerializer
 from core.permissions import IsAdmin, IsOrganizer, IsAdminOrOrganizer
 from rest_framework.permissions import IsAuthenticated
-from users.models import User, OrganizerRequest  # Add OrganizerRequest import
+from users.models import User, OrganizerRequest
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
