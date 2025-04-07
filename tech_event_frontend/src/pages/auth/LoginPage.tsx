@@ -1,12 +1,12 @@
 // src/pages/auth/Login.tsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '../../components/ui/button';
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
-import { Input } from '../../components/ui/input';
+import { Input } from '@/components/ui/input';
 import { Github } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -18,7 +18,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const { login, loginWithGoogle, loginWithGithub, error, clearError } = useAuth();
+  const { login, error, clearError } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   
@@ -36,6 +36,16 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const loginWithGoogle = () => {
+    const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/users/google/redirect/`;
+    window.location.href = googleAuthUrl;
+  };
+
+  const loginWithGithub = () => {
+    const githubAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/users/github/redirect/`;
+    window.location.href = githubAuthUrl;
   };
   
   return (

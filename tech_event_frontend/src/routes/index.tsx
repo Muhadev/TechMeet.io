@@ -54,7 +54,8 @@ export function Routes() {
         />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:uid/:token" element={<ResetPasswordPage />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/google/callback" element={<AuthCallback />} />
+        <Route path="/auth/github/callback" element={<AuthCallback />} />
       {/* </Route> */}
 
       {/* Protected routes */}

@@ -15,6 +15,7 @@ type AuthContextType = {
   socialLogin: (provider: string, accessToken: string) => Promise<void>;
   updateProfile: (userData: Partial<User>) => Promise<void>;
   error: string | null;
+  clearError: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -156,6 +157,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const clearError = () => {
+    setError(null);
+  };
+
   const value = {
     user,
     token,
@@ -167,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     socialLogin,
     updateProfile,
     error,
+    clearError
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

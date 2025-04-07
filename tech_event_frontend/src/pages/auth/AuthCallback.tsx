@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardContent } from '../../components/ui/card';
-import { Alert, AlertDescription } from '../../components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AuthCallback() {
   const { socialLogin } = useAuth();
@@ -16,7 +16,9 @@ export default function AuthCallback() {
       // Parse the URL parameters
       const params = new URLSearchParams(location.search);
       const accessToken = params.get('access_token');
-      const provider = params.get('provider') || 'google'; // Default to Google if not specified
+      // Determine the provider based on the current URL path
+      const provider = location.pathname.includes('google') ? 'google' : 'github';
+
 
       if (!accessToken) {
         setError('No access token provided in the callback URL');
@@ -34,20 +36,27 @@ export default function AuthCallback() {
     processCallback();
   }, [location, socialLogin, navigate]);
 
-  return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <Card className="w-full max-w-md p-6">
-        <CardContent className="flex flex-col items-center justify-center space-y-4">
-          {error ? (
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
             <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+              </AlertDescription>
             </Alert>
-          ) : (
-            <>
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-              <p className="text-center text-muted-foreground">Completing authentication...</p>
-            </>
-          )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <Card className="w-full max-w-md">
+        <CardContent className="flex justify-center items-center py-12">
+          <p className="text-muted-foreground">Completing authentication...</p>
         </CardContent>
       </Card>
     </div>
