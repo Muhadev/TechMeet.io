@@ -32,4 +32,4 @@ def custom_exception_handler(exc, context):
         # Log the exception with request details
         logger.error(
             f"API Error in {view_name}: {response.status_code} - {str(exc)} - "
-            f"User: {request.user.id if request.user.is_authenticated else 'Anonymous'} -
+            f"User: {request.user.id if request.user.is_authenticated else 'Anonymous'} -")

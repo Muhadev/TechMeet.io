@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const response = await axios.get('/users/profile/', {
+        const response = await axios.get('/auth/profile/', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,14 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/users/token/', { email, password });
+      const response = await axios.post('/auth/token/', { email, password });
       const { access, refresh } = response.data;
       
       setToken(access, refresh);
       setAuthToken(access);
       
       // Load user profile
-      const userResponse = await axios.get('/users/profile/', {
+      const userResponse = await axios.get('/auth/profile/', {
         headers: {
           Authorization: `Bearer ${access}`,
         },
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: any) => {
     setIsLoading(true);
     try {
-      await axios.post('/users/register/', userData);
+      await axios.post('/auth/register/', userData);
       setError(null);
       // After successful registration, log the user in
       await login(userData.email, userData.password);
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const socialLogin = async (provider: string, accessToken: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`/users/${provider}/`, {
+      const response = await axios.post(`/auth/${provider}/`, {
         access_token: accessToken,
       });
       
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthToken(access);
       
       // Load user profile
-      const userResponse = await axios.get('/users/profile/', {
+      const userResponse = await axios.get('/auth/profile/', {
         headers: {
           Authorization: `Bearer ${access}`,
         },
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await axios.patch('/users/profile/', userData, {
+      const response = await axios.patch('/auth/profile/', userData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
