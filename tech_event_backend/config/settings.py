@@ -145,7 +145,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -240,6 +240,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://techmeet.io",    # Production frontend
     # Add any other frontend URLs you need
+]
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',  # Your frontend URL
+    'http://127.0.0.1:5173',
+    'http://localhost:8000',  # Your backend URL
+    'http://127.0.0.1:8000',
 ]
 
 # Allow credentials (cookies, authorization headers)

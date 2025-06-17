@@ -17,7 +17,7 @@ import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import AuthCallback from '../pages/auth/AuthCallback';
 
 // Protected pages
-// import DashboardPage from '../pages/dashboard/DashboardPage';
+import DashboardPage from '../pages/dashboard';
 // import ProfilePage from '../pages/user/ProfilePage';
 // import SettingsPage from '../pages/user/SettingsPage';
 // import TicketWalletPage from '../pages/tickets/TicketWalletPage';
@@ -25,7 +25,8 @@ import AuthCallback from '../pages/auth/AuthCallback';
 
 // Admin and Organizer pages
 // import EventDashboardPage from '../pages/organizer/EventDashboardPage';
-// import CreateEventPage from '../pages/events/CreateEventPage';
+import CreateEventPage from '../pages/events/CreateEventPage';
+import EventSuccessPage from '../pages/events/EventSuccessPage';
 // import ScanTicketPage from '../pages/organizer/ScanTicketPage';
 
 import PrivateRoute from './PrivateRoute';
@@ -40,6 +41,8 @@ export function Routes() {
       {/* Public routes */}
       {/* <Route element={<MainLayout />}> */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/events/create-event" element={<CreateEventPage />} />
+        <Route path="/events/success" element={<EventSuccessPage />} />
         {/* <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} /> */}
         
@@ -59,6 +62,7 @@ export function Routes() {
       {/* </Route> */}
 
       {/* Protected routes */}
+      <Route path="/dashboard" element={<DashboardPage />} />
       {/* <Route element={<PrivateRoute><DashboardLayout /></PrivateRoute>}> */}
         {/* <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />

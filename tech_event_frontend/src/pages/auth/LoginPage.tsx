@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Github } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Navigation from '@/components/Navigation';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -49,6 +50,8 @@ const Login = () => {
   };
   
   return (
+    <div>
+      <Navigation />
     <div className="flex justify-center items-center py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
@@ -171,6 +174,7 @@ const Login = () => {
           </p>
         </CardFooter>
       </Card>
+    </div>
     </div>
   );
 };

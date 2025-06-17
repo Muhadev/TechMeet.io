@@ -10,11 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import Navigation from '@/components/Navigation';
 
 // Define the registration form schema
 const registerSchema = z.object({
   firstName: z.string().min(1, { message: 'First name is required' }),
   lastName: z.string().min(1, { message: 'Last name is required' }),
+  username: z.string().min(3, { message: 'Username must be at least 3 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string()
     .min(8, { message: 'Password must be at least 8 characters long' })
@@ -22,6 +24,7 @@ const registerSchema = z.object({
     .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
     .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   confirmPassword: z.string(),
+  role: z.enum(['ATTENDEE', 'ORGANIZER'], { message: 'Please select a role' }),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -36,6 +39,9 @@ export default function RegisterPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: 'ATTENDEE', // Set default role
+    },
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
@@ -43,9 +49,12 @@ export default function RegisterPage() {
     try {
       await authRegister({
         email: data.email,
-        password: data.password,
+        username: data.username,
         first_name: data.firstName,
         last_name: data.lastName,
+        password: data.password,
+        password2: data.confirmPassword, // Backend expects password2
+        role: data.role,
       });
       navigate('/dashboard');
     } catch (err) {
@@ -61,6 +70,8 @@ export default function RegisterPage() {
   };
 
   return (
+    <div>
+    <Navigation />
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
@@ -102,6 +113,19 @@ export default function RegisterPage() {
                 )}
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                placeholder="Enter username"
+                {...register('username')}
+                disabled={loading}
+              />
+              {errors.username && (
+                <p className="text-sm text-red-500">{errors.username.message}</p>
+              )}
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -114,6 +138,22 @@ export default function RegisterPage() {
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <select
+                id="role"
+                {...register('role')}
+                disabled={loading}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="ATTENDEE">Attendee</option>
+                <option value="ORGANIZER">Organizer</option>
+              </select>
+              {errors.role && (
+                <p className="text-sm text-red-500">{errors.role.message}</p>
               )}
             </div>
             
@@ -187,6 +227,7 @@ export default function RegisterPage() {
           </p>
         </CardFooter>
       </Card>
+    </div>
     </div>
   );
 }
