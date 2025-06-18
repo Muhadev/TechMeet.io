@@ -323,7 +323,7 @@ const Navigation: React.FC<NavigationProps> = ({
       {/* Click outside handler for user menu */}
       {isUserMenuOpen && (
         <div 
-          className="fixed inset-0 z-40" 
+          className="fixed inset-0 z-40"
           onClick={() => setIsUserMenuOpen(false)}
         />
       )}
