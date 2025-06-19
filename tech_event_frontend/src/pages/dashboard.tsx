@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'
 import MyEventsSection from './events/MyEventsSection';
+import RecentEventsSection from './events/RecentEventsSection';
 import AttendeesSection from './events/AttendeesSection';
 import AnalyticsSection from './events/AnalyticsSection';
+import EventStatistics from '../pages/EventStatistics';
 import { 
   Calendar, 
   Users, 
@@ -165,31 +167,6 @@ const Dashboard = () => {
       status: "pending"
     }
   ];
-
-  const StatCard = ({ icon: Icon, title, value, change, changeType, subtitle }) => (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {change && (
-            <p className={`text-sm mt-1 flex items-center ${
-              changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              <TrendingUp className="w-4 h-4 mr-1" />
-              {change}% from last month
-            </p>
-          )}
-          {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-          )}
-        </div>
-        <div className="p-3 bg-blue-50 rounded-lg">
-          <Icon className="w-6 h-6 text-blue-600" />
-        </div>
-      </div>
-    </div>
-  );
 
   const OrganizerEventCard = ({ event }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
@@ -553,87 +530,10 @@ const formatRole = (role?: string) => {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {userRole === 'organizer' ? (
-                  <>
-                    <StatCard
-                      icon={Calendar} 
-                      title="Total Events" 
-                      value={organizerStats.totalEvents} 
-                      change={12} 
-                      changeType="positive" 
-                    />
-                    <StatCard 
-                      icon={Users} 
-                      title="Total Attendees" 
-                      value={organizerStats.totalAttendees.toLocaleString()} 
-                      change={8} 
-                      changeType="positive" 
-                    />
-                    <StatCard 
-                      icon={DollarSign} 
-                      title="Total Revenue" 
-                      value={`₦${organizerStats.totalRevenue.toLocaleString()}`} 
-                      change={15} 
-                      changeType="positive" 
-                    />
-                    <StatCard 
-                      icon={TrendingUp} 
-                      title="Active Events" 
-                      value={organizerStats.activeEvents} 
-                      change={25} 
-                      changeType="positive" 
-                    />
-                  </>
-                ) : (
-                  <>
-                    <StatCard
-                      icon={CalendarIcon} 
-                      title="Upcoming Events" 
-                      value={attendeeStats.upcomingEvents} 
-                      subtitle="Next event in 3 days"
-                    />
-                    <StatCard 
-                      icon={Ticket} 
-                      title="Total Tickets" 
-                      value={attendeeStats.totalTickets} 
-                      subtitle="Active tickets"
-                    />
-                    <StatCard 
-                      icon={Award} 
-                      title="Events Attended" 
-                      value={attendeeStats.eventsAttended} 
-                      subtitle="All time"
-                    />
-                    <StatCard 
-                      icon={Heart} 
-                      title="Favorite Events" 
-                      value={attendeeStats.favoriteEvents} 
-                      subtitle="Saved for later"
-                    />
-                  </>
-                )}
-              </div>
+              <EventStatistics eventId={4} />
 
               {/* Recent Events */}
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {userRole === 'organizer' ? 'Recent Events' : 'My Upcoming Events'}
-                  </h3>
-                  <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">View All</button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {userRole === 'organizer' 
-                    ? organizerEvents.map(event => (
-                        <OrganizerEventCard key={event.id} event={event} />
-                      ))
-                    : attendeeEvents.filter(event => event.status !== 'completed').map(event => (
-                        <AttendeeEventCard key={event.id} event={event} />
-                      ))
-                  }
-                </div>
-              </div>
+              <RecentEventsSection/>
             </div>
           )}
 
