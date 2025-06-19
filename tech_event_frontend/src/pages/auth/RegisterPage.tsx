@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form'; 
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../context/AuthContext';
@@ -14,8 +14,8 @@ import Navigation from '@/components/Navigation';
 
 // Define the registration form schema
 const registerSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required' }),
-  lastName: z.string().min(1, { message: 'Last name is required' }),
+  first_name: z.string().min(1, { message: 'First name is required' }),
+  last_name: z.string().min(1, { message: 'Last name is required' }),
   username: z.string().min(3, { message: 'Username must be at least 3 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string()
@@ -50,8 +50,8 @@ export default function RegisterPage() {
       await authRegister({
         email: data.email,
         username: data.username,
-        first_name: data.firstName,
-        last_name: data.lastName,
+        first_name: data.first_name,
+        last_name: data.last_name,
         password: data.password,
         password2: data.confirmPassword, // Backend expects password2
         role: data.role,
@@ -90,26 +90,26 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="first_name">First Name</Label>
                 <Input
-                  id="firstName"
-                  {...register('firstName')}
+                  id="first_name"
+                  {...register('first_name')}
                   disabled={loading}
                 />
-                {errors.firstName && (
-                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                {errors.first_name && (
+                  <p className="text-sm text-red-500">{errors.first_name.message}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="last_name">Last Name</Label>
                 <Input
-                  id="lastName"
-                  {...register('lastName')}
+                  id="last_name"
+                  {...register('last_name')}
                   disabled={loading}
                 />
-                {errors.lastName && (
-                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                {errors.last_name && (
+                  <p className="text-sm text-red-500">{errors.last_name.message}</p>
                 )}
               </div>
             </div>

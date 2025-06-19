@@ -4,6 +4,7 @@ export interface User {
     email: string;
     first_name: string;
     last_name: string;
+    username: string;
     profile_picture?: string;
     role: 'ADMIN' | 'ORGANIZER' | 'ATTENDEE';
     auth_provider?: 'email' | 'google' | 'github';

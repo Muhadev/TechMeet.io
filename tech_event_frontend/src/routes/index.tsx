@@ -18,6 +18,7 @@ import AuthCallback from '../pages/auth/AuthCallback';
 
 // Protected pages
 import DashboardPage from '../pages/dashboard';
+// import SettingsPage from '../pages/SettingsPage';
 // import ProfilePage from '../pages/user/ProfilePage';
 // import SettingsPage from '../pages/user/SettingsPage';
 // import TicketWalletPage from '../pages/tickets/TicketWalletPage';
@@ -28,7 +29,7 @@ import DashboardPage from '../pages/dashboard';
 import CreateEventPage from '../pages/events/CreateEventPage';
 import EventSuccessPage from '../pages/events/EventSuccessPage';
 // import ScanTicketPage from '../pages/organizer/ScanTicketPage';
-
+import ProfileSettings from '../pages/ProfileSettings';
 import PrivateRoute from './PrivateRoute';
 import RoleBasedRoute from './RoleBasedRoute';
 // import NotFoundPage from '../pages/NotFoundPage';
@@ -43,6 +44,7 @@ export function Routes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/events/create-event" element={<CreateEventPage />} />
         <Route path="/events/success" element={<EventSuccessPage />} />
+        {/* <Route path="/settings" element={<SettingsPage />} /> */}
         {/* <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} /> */}
         
@@ -63,6 +65,7 @@ export function Routes() {
 
       {/* Protected routes */}
       <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/settings" element={<ProfileSettings />} />
       {/* <Route element={<PrivateRoute><DashboardLayout /></PrivateRoute>}> */}
         {/* <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />

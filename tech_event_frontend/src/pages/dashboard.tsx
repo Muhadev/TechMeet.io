@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext'
+import MyEventsSection from './events/MyEventsSection';
 import { 
   Calendar, 
   Users, 
@@ -367,60 +369,119 @@ const Dashboard = () => {
     return commonItems;
   };
 
+  // Add this inside your Dashboard component, before the return statement
+const { user, logout } = useAuth();
+
+// Helper function to get user initials
+const getUserInitials = (firstName?: string, lastName?: string, username?: string) => {
+  if (firstName && lastName) {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  }
+  if (username) {
+    return username.charAt(0).toUpperCase();
+  }
+  return 'U'; // Default fallback
+};
+
+// Helper function to get display name
+const getDisplayName = (firstName?: string, lastName?: string, username?: string) => {
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`;
+  }
+  if (firstName) {
+    return firstName;
+  }
+  if (username) {
+    return username;
+  }
+  return 'User';
+};
+
+// Helper function to format role for display
+const formatRole = (role?: string) => {
+  if (!role) return 'user';
+  return role.toLowerCase().replace('_', ' ');
+};
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r text-white from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r text-white from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">TechMeet.io</h1>
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">TechMeet.io</h1>
             </div>
             <div className="hidden md:block">
-              <div className="relative">
+                <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
-                  type="text"
-                  placeholder={userRole === 'organizer' ? "Search events, attendees..." : "Search events..."}
-                  className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="text"
+                    placeholder={user?.role === 'ORGANIZER' || user?.role === 'ADMIN' ? "Search events, attendees..." : "Search events..."}
+                    className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-              </div>
+                </div>
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Role Switcher for Demo */}
-            <select 
-              value={userRole} 
-              onChange={(e) => setUserRole(e.target.value)}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-1 bg-white"
-            >
-              <option value="organizer">Organizer</option>
-              <option value="attendee">Attendee</option>
-            </select>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+            {/* Role Switcher - Only show for testing/demo purposes, you might want to remove this in production */}
+            {user?.role === 'ADMIN' && (
+                <select 
+                value={userRole} 
+                onChange={(e) => setUserRole(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1 bg-white"
+                >
+                <option value="organizer">Organizer</option>
+                <option value="attendee">Attendee</option>
+                </select>
+            )}
             
             <button className="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
+            
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-700">JD</span>
-              </div>
-              <div className="hidden md:block">
-                <p className="text-sm font-medium text-gray-900">John Doe</p>
-                <p className="text-xs text-gray-500 capitalize">{userRole}</p>
-              </div>
+                {/* Profile Picture or Initials */}
+                {user?.profile_picture ? (
+                <img 
+                    src={user.profile_picture} 
+                    alt="Profile" 
+                    className="w-8 h-8 rounded-full object-cover"
+                />
+                ) : (
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-gray-700">
+                    {getUserInitials(user?.first_name, user?.last_name, user?.username)}
+                    </span>
+                </div>
+                )}
+                
+                {/* User Info */}
+                <div className="hidden md:block">
+                <p className="text-sm font-medium text-gray-900">
+                    {getDisplayName(user?.first_name, user?.last_name, user?.username)}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">
+                    {formatRole(user?.role)}
+                </p>
+                </div>
             </div>
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-              <Settings className="w-5 h-5" />
-            </button>
-          </div>
+            
+            {/* Settings/Logout Dropdown */}
+            <div className="relative">
+                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <Settings className="w-5 h-5" />
+                </button>
+                {/* You can add a dropdown menu here for settings and logout */}
+            </div>
+            </div>
         </div>
-      </header>
+        </header>
 
       <div className="flex">
         {/* Sidebar */}
@@ -451,7 +512,7 @@ const Dashboard = () => {
               
               <button className="w-full flex items-center space-x-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg mt-2">
                 <Settings className="w-5 h-5" />
-                <span className="font-medium">Settings</span>
+                <span className="font-medium"><a href="/settings">Settings</a></span>
               </button>
               
               <button className="w-full flex items-center space-x-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg mt-2">
@@ -479,7 +540,7 @@ const Dashboard = () => {
                 {userRole === 'organizer' ? (
                   <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
                     <Plus className="w-4 h-4" />
-                    <span>Create Event</span>
+                    <span><a href="events/create-event">Create Event</a></span>
                   </button>
                 ) : (
                   <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
@@ -574,59 +635,8 @@ const Dashboard = () => {
             </div>
           )}
 
-          {activeTab === 'events' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {userRole === 'organizer' ? 'My Events' : 'My Events'}
-                  </h2>
-                  <p className="text-gray-600 mt-1">
-                    {userRole === 'organizer' 
-                      ? 'Manage your events and track their performance.' 
-                      : 'View and manage your event registrations.'}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-                    <Filter className="w-4 h-4" />
-                    <span>Filter</span>
-                  </button>
-                  {userRole === 'organizer' && (
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-                      <Download className="w-4 h-4" />
-                      <span>Export</span>
-                    </button>
-                  )}
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-                    {userRole === 'organizer' ? (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        <span>Create Event</span>
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-4 h-4" />
-                        <span>Find Events</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {userRole === 'organizer' 
-                  ? organizerEvents.map(event => (
-                      <OrganizerEventCard key={event.id} event={event} />
-                    ))
-                  : attendeeEvents.map(event => (
-                      <AttendeeEventCard key={event.id} event={event} />
-                    ))
-                }
-              </div>
-            </div>
-          )}
-
+          {activeTab === 'events' && <MyEventsSection />}
+          
           {activeTab === 'tickets' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
