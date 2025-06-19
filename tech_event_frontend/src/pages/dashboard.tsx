@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'
 import MyEventsSection from './events/MyEventsSection';
+import AttendeesSection from './events/AttendeesSection';
+import AnalyticsSection from './events/AnalyticsSection';
 import { 
   Calendar, 
   Users, 
@@ -692,176 +694,10 @@ const formatRole = (role?: string) => {
                 </div>
                 )}
 
-                {activeTab === 'attendees' && userRole === 'organizer' && (
-                <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Attendees</h2>
-                    <p className="text-gray-600 mt-1">Manage and communicate with your event attendees.</p>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-                        <Filter className="w-4 h-4" />
-                        <span>Filter</span>
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-                        <Download className="w-4 h-4" />
-                        <span>Export</span>
-                    </button>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
-                        <Mail className="w-4 h-4" />
-                        <span>Send Message</span>
-                    </button>
-                    </div>
-                </div>
+                {activeTab === 'attendees' && userRole === 'organizer' && <AttendeesSection />}
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-                    <div className="px-6 py-4 border-b border-gray-100">
-                    <h3 className="font-medium text-gray-900">All Attendees</h3>
-                    </div>
-                    <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Type</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                        {[
-                            { name: "John Doe", email: "john@example.com", event: "React Native Conference 2025", ticketType: "VIP", status: "confirmed" },
-                            { name: "Jane Smith", email: "jane@example.com", event: "AI & Machine Learning Summit", ticketType: "Regular", status: "confirmed" },
-                            { name: "Mike Johnson", email: "mike@example.com", event: "DevOps Workshop Series", ticketType: "Student", status: "pending" },
-                        ].map((attendee, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-                                    <span className="text-sm font-medium text-gray-700">{attendee.name.charAt(0)}</span>
-                                </div>
-                                <div className="font-medium text-gray-900">{attendee.name}</div>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{attendee.email}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.event}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{attendee.ticketType}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                attendee.status === 'confirmed' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                {attendee.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
-                                {attendee.status === 'pending' && <AlertCircle className="w-3 h-3 mr-1" />}
-                                {attendee.status.charAt(0).toUpperCase() + attendee.status.slice(1)}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div className="flex items-center space-x-2">
-                                <button className="text-blue-600 hover:text-blue-900">View</button>
-                                <button className="text-green-600 hover:text-green-900">Message</button>
-                                </div>
-                            </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                    </div>
-                </div>
-                </div>
-                )}
-
-                {activeTab === 'analytics' && userRole === 'organizer' && (
-                <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Analytics</h2>
-                    <p className="text-gray-600 mt-1">Track your event performance and attendee engagement.</p>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                    <select className="px-4 py-2 border border-gray-300 rounded-lg bg-white">
-                        <option>Last 30 days</option>
-                        <option>Last 3 months</option>
-                        <option>Last year</option>
-                    </select>
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2">
-                        <Download className="w-4 h-4" />
-                        <span>Export Report</span>
-                    </button>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-medium text-gray-900">Event Performance</h3>
-                        <TrendingUp className="w-5 h-5 text-green-500" />
-                    </div>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Total Views</span>
-                        <span className="font-medium">12,543</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Conversion Rate</span>
-                        <span className="font-medium text-green-600">24.5%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Avg. Ticket Price</span>
-                        <span className="font-medium">₦8,750</span>
-                        </div>
-                    </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-medium text-gray-900">Revenue Growth</h3>
-                        <DollarSign className="w-5 h-5 text-blue-500" />
-                    </div>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">This Month</span>
-                        <span className="font-medium">₦45,200</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Last Month</span>
-                        <span className="font-medium">₦38,950</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Growth</span>
-                        <span className="font-medium text-green-600">+16.1%</span>
-                        </div>
-                    </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-medium text-gray-900">Attendee Insights</h3>
-                        <Users className="w-5 h-5 text-purple-500" />
-                    </div>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Repeat Attendees</span>
-                        <span className="font-medium">68%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Avg. Age</span>
-                        <span className="font-medium">28 years</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Satisfaction</span>
-                        <span className="font-medium text-green-600">4.8/5</span>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-                </div>
-                )}
-
+                {activeTab === 'analytics' && userRole === 'organizer' && <AnalyticsSection />}
+                
                 {activeTab === 'discover' && userRole === 'attendee' && (
                 <div className="space-y-6">
                 <div className="flex items-center justify-between">
