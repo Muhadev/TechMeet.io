@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../lib/axios'; // Your axios instance
+import api from '../../lib/axios';
+import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   Users, 
@@ -25,6 +26,8 @@ const MyEventsSection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+
+  const navigate = useNavigate();
 
   // Fetch events from API
   useEffect(() => {
@@ -210,14 +213,13 @@ const MyEventsSection = () => {
           
           <div className="flex items-center space-x-2">
             <button 
-              className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-              onClick={() => {
-                // TODO: Implement view details functionality
-                console.log('View details for event:', event.id);
-              }}
-            >
-              View Details
-            </button>
+                className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                onClick={() => {
+                    navigate(`/events/${event.id}`);
+                }}
+                >
+                View Details
+                </button>
             
             <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
               <Eye className="w-4 h-4" />
@@ -420,7 +422,7 @@ const MyEventsSection = () => {
             </button>
           ) : null}
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
-            <a href="events/create-event">Create Event</a>
+            <a href="/events/create-event">Create Event</a>
           </button>
         </div>
       ) : (

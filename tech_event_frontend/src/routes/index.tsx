@@ -28,6 +28,7 @@ import DashboardPage from '../pages/dashboard';
 // import EventDashboardPage from '../pages/organizer/EventDashboardPage';
 import CreateEventPage from '../pages/events/CreateEventPage';
 import EventSuccessPage from '../pages/events/EventSuccessPage';
+import EventDetailPage from '../pages/events/EventDetailPage';
 // import ScanTicketPage from '../pages/organizer/ScanTicketPage';
 import ProfileSettings from '../pages/ProfileSettings';
 import PrivateRoute from './PrivateRoute';
@@ -66,6 +67,7 @@ export function Routes() {
       {/* Protected routes */}
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/settings" element={<ProfileSettings />} />
+      <Route path="/events/:id" element={<EventDetailPage />} />
       {/* <Route element={<PrivateRoute><DashboardLayout /></PrivateRoute>}> */}
         {/* <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
