@@ -241,3 +241,4 @@ def send_password_reset(user, reset_link):
     html_content = render_to_string('emails/password_reset.html', context)
     
     return send_email(user.email, subject, html_content)
+    

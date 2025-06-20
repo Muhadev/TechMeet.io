@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
 
 User = get_user_model()
 
@@ -57,3 +58,16 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'profile_picture']
+
+class CustomSocialLoginSerializer(SocialLoginSerializer):
+    """
+    Custom social login serializer to handle user creation properly
+    """
+    def get_social_login(self, adapter, app, token, response):
+        """
+        Override to ensure proper user creation
+        """
+        request = self._get_request()
+        social_login = adapter.complete_login(request, app, token, response=response)
+        social_login.state = SocialLogin.state_from_request(request)
+        return social_login

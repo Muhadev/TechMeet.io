@@ -14,6 +14,8 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
 import sendgrid
+from allauth.socialaccount.models import SocialAccount, SocialApp
+from .serializers import UserSerializer
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from django.shortcuts import render
 from django.views.generic import TemplateView
@@ -23,7 +25,6 @@ from django.views.generic import RedirectView
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from allauth.socialaccount.providers.oauth2.views import OAuth2Adapter
-from allauth.socialaccount.models import SocialApp
 import requests
 from django.utils import timezone
 from rest_framework import status
@@ -33,6 +34,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from users.models import OrganizerRequest
+from core.email import send_password_reset, send_email
+from django.template.loader import render_to_string
 
 from .serializers import (
     UserSerializer, RegisterSerializer, PasswordResetRequestSerializer,
@@ -75,7 +78,6 @@ class GithubLogin(SocialLoginView):
 
 class PasswordResetRequestView(APIView):
     permission_classes = [permissions.AllowAny]
-    # authentication_classes = []
     serializer_class = PasswordResetRequestSerializer
     
     def post(self, request):
@@ -90,19 +92,9 @@ class PasswordResetRequestView(APIView):
                 
                 # Create reset link
                 reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
-                print(f"DEBUG - Reset link: {reset_link}")  # Add this line
                 
-                # Send email via SendGrid
-                sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_API_KEY)
-                from_email = Email(settings.DEFAULT_FROM_EMAIL)
-                to_email = To(email)
-                subject = "Password Reset Request"
-                content = Content(
-                    "text/plain", 
-                    f"Please click the following link to reset your password: {reset_link}"
-                )
-                mail = Mail(from_email, to_email, subject, content)
-                response = sg.client.mail.send.post(request_body=mail.get())
+                # Send email using the template system
+                send_password_reset(user, reset_link)
                 
                 return Response(
                     {"message": "Password reset link has been sent to your email."},
@@ -117,7 +109,7 @@ class PasswordResetRequestView(APIView):
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
-    authentication_classes = []  # to disable authentication for this view
+    authentication_classes = []
     serializer_class = PasswordResetConfirmSerializer
     
     def post(self, request, uidb64, token):
@@ -130,6 +122,10 @@ class PasswordResetConfirmView(APIView):
                 if default_token_generator.check_token(user, token):
                     user.set_password(serializer.validated_data['password'])
                     user.save()
+                    
+                    # Send confirmation email
+                    send_password_reset_success(user)
+                    
                     return Response(
                         {"message": "Password has been reset successfully."},
                         status=status.HTTP_200_OK
@@ -144,6 +140,19 @@ class PasswordResetConfirmView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def send_password_reset_success(user):
+    """Send a confirmation email after successful password reset"""
+    context = {
+        'user': user,
+        'year': timezone.now().year,
+        'support_email': 'support@techmeet.io'
+    }
+    
+    subject = "Password Reset Successful - TechMeet.io"
+    html_content = render_to_string('emails/password_reset_success.html', context)
+    
+    return send_email(user.email, subject, html_content)
 
 class OAuthTestView(TemplateView):
     template_name = 'auth/oauth_test.html'
@@ -189,9 +198,15 @@ class GoogleCallbackView(APIView):
     
     def get(self, request):
         code = request.GET.get('code')
+        error = request.GET.get('error')
+        
+        if error:
+            redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=access_denied"
+            return HttpResponseRedirect(redirect_url)
+            
         if not code:
-            return Response({"error": "No authorization code provided"}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+            redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=no_code"
+            return HttpResponseRedirect(redirect_url)
             
         # Get the OAuth2 app details
         try:
@@ -199,8 +214,8 @@ class GoogleCallbackView(APIView):
             client_id = app.client_id
             client_secret = app.secret
         except SocialApp.DoesNotExist:
-            return Response({"error": "Google OAuth configuration not found"}, 
-                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=config_error"
+            return HttpResponseRedirect(redirect_url)
             
         # Exchange the authorization code for an access token
         token_url = 'https://oauth2.googleapis.com/token'
@@ -212,25 +227,35 @@ class GoogleCallbackView(APIView):
             'grant_type': 'authorization_code'
         }
         
-        response = requests.post(token_url, data=data)
-        if response.status_code != 200:
-            return Response({"error": "Failed to obtain access token", 
-                           "details": response.text}, 
-                          status=status.HTTP_400_BAD_REQUEST)
-            
-        # Redirect to frontend with the token
-        token_data = response.json()
-        redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={token_data.get('access_token')}"
-        return HttpResponseRedirect(redirect_url)
+        try:
+            response = requests.post(token_url, data=data)
+            if response.status_code != 200:
+                redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=token_exchange_failed"
+                return HttpResponseRedirect(redirect_url)
+                
+            # Redirect to frontend with the access token
+            token_data = response.json()
+            access_token = token_data.get('access_token')
+            redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?access_token={access_token}"
+            return HttpResponseRedirect(redirect_url)
+        except Exception as e:
+            redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=server_error"
+            return HttpResponseRedirect(redirect_url)
 
 class GithubCallbackView(APIView):
     permission_classes = [permissions.AllowAny]
     
     def get(self, request):
         code = request.GET.get('code')
+        error = request.GET.get('error')
+        
+        if error:
+            redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=access_denied"
+            return HttpResponseRedirect(redirect_url)
+            
         if not code:
-            return Response({"error": "No authorization code provided"}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+            redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=no_code"
+            return HttpResponseRedirect(redirect_url)
             
         # Get the OAuth2 app details
         try:
@@ -238,8 +263,8 @@ class GithubCallbackView(APIView):
             client_id = app.client_id
             client_secret = app.secret
         except SocialApp.DoesNotExist:
-            return Response({"error": "GitHub OAuth configuration not found"}, 
-                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=config_error"
+            return HttpResponseRedirect(redirect_url)
             
         # Exchange the authorization code for an access token
         token_url = 'https://github.com/login/oauth/access_token'
@@ -251,17 +276,159 @@ class GithubCallbackView(APIView):
         }
         headers = {'Accept': 'application/json'}
         
-        response = requests.post(token_url, data=data, headers=headers)
-        if response.status_code != 200:
-            return Response({"error": "Failed to obtain access token", 
-                           "details": response.text}, 
-                          status=status.HTTP_400_BAD_REQUEST)
-            
-        # Redirect to frontend with the token
-        token_data = response.json()
-        redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={token_data.get('access_token')}"
-        return HttpResponseRedirect(redirect_url)
+        try:
+            response = requests.post(token_url, data=data, headers=headers)
+            if response.status_code != 200:
+                redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=token_exchange_failed"
+                return HttpResponseRedirect(redirect_url)
+                
+            # Redirect to frontend with the access token
+            token_data = response.json()
+            access_token = token_data.get('access_token')
+            redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?access_token={access_token}"
+            return HttpResponseRedirect(redirect_url)
+        except Exception as e:
+            redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=server_error"
+            return HttpResponseRedirect(redirect_url)
 
+class GoogleLogin(APIView):
+    permission_classes = []
+    
+    def post(self, request):
+        access_token = request.data.get('access_token')
+        
+        if not access_token:
+            return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Use the access token to get user info from Google
+            google_user_info_url = 'https://www.googleapis.com/oauth2/v2/userinfo'
+            headers = {'Authorization': f'Bearer {access_token}'}
+            response = requests.get(google_user_info_url, headers=headers)
+            
+            if response.status_code != 200:
+                return Response({'error': 'Invalid access token'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user_data = response.json()
+            email = user_data.get('email')
+            google_id = user_data.get('id')
+            
+            if not email:
+                return Response({'error': 'Email not provided by Google'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Try to find existing user by email or google provider ID
+            user = None
+            try:
+                user = User.objects.get(email=email)
+                # Update auth provider info if it's not set
+                if user.auth_provider == 'email':
+                    user.auth_provider = 'google'
+                    user.auth_provider_id = google_id
+                    user.save()
+            except User.DoesNotExist:
+                # Create new user
+                user = User.objects.create_user(
+                    email=email,
+                    username=email,
+                    first_name=user_data.get('given_name', ''),
+                    last_name=user_data.get('family_name', ''),
+                    auth_provider='google',
+                    auth_provider_id=google_id
+                )
+            
+            # Create or update social account for allauth compatibility
+            social_account, created = SocialAccount.objects.get_or_create(
+                user=user,
+                provider='google',
+                defaults={'uid': google_id}
+            )
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': UserSerializer(user).data
+            })
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GithubLogin(APIView):
+    permission_classes = []
+    
+    def post(self, request):
+        access_token = request.data.get('access_token')
+        
+        if not access_token:
+            return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Use the access token to get user info from GitHub
+            github_user_info_url = 'https://api.github.com/user'
+            headers = {'Authorization': f'token {access_token}'}
+            response = requests.get(github_user_info_url, headers=headers)
+            
+            if response.status_code != 200:
+                return Response({'error': 'Invalid access token'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user_data = response.json()
+            github_id = str(user_data.get('id'))
+            
+            # Get user email from GitHub
+            email = user_data.get('email')
+            if not email:
+                # Try to get email from GitHub's email endpoint
+                email_response = requests.get('https://api.github.com/user/emails', headers=headers)
+                if email_response.status_code == 200:
+                    emails = email_response.json()
+                    primary_email = next((e['email'] for e in emails if e['primary']), None)
+                    email = primary_email
+            
+            if not email:
+                return Response({'error': 'Email not provided by GitHub'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Try to find existing user by email or github provider ID
+            user = None
+            try:
+                user = User.objects.get(email=email)
+                # Update auth provider info if it's not set
+                if user.auth_provider == 'email':
+                    user.auth_provider = 'github'
+                    user.auth_provider_id = github_id
+                    user.save()
+            except User.DoesNotExist:
+                # Create new user
+                name_parts = (user_data.get('name') or '').split(' ', 1)
+                user = User.objects.create_user(
+                    email=email,
+                    username=email,
+                    first_name=name_parts[0] if name_parts else '',
+                    last_name=name_parts[1] if len(name_parts) > 1 else '',
+                    auth_provider='github',
+                    auth_provider_id=github_id
+                )
+            
+            # Create or update social account for allauth compatibility
+            social_account, created = SocialAccount.objects.get_or_create(
+                user=user,
+                provider='github',
+                defaults={'uid': github_id}
+            )
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': UserSerializer(user).data
+            })
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
 # users/api/views.py
 @csrf_exempt
 @api_view(['POST'])

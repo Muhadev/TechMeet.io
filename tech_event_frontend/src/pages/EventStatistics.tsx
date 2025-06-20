@@ -107,7 +107,7 @@ const EventStatistics = ({ eventId }) => {
   const occupancyPercentage = Math.round(statistics.occupancy_rate * 100);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
       {/* Total Tickets */}
       <StatCard
         icon={Ticket}
@@ -136,13 +136,13 @@ const EventStatistics = ({ eventId }) => {
       />
 
       {/* Available Capacity */}
-      <StatCard
+      {/* <StatCard
         icon={Users}
         title="Available Capacity"
         value={statistics.available_capacity.toLocaleString()}
         subtitle="Remaining spots"
         color="orange"
-      />
+      /> */}
 
       {/* Occupancy Rate */}
       <StatCard

@@ -41,12 +41,12 @@ urlpatterns = [
     path('github/redirect/', GithubAuthRedirectView.as_view(), name='github_auth_redirect'),
 
     # Social authentication - Callback views (use the new dedicated views)
-    path('google/callback', GoogleCallbackView.as_view(), name='google_callback'),
-    path('github/callback', GithubCallbackView.as_view(), name='github_callback'),
+    path('google/callback/', GoogleCallbackView.as_view(), name='google_callback'),
+    path('github/callback/', GithubCallbackView.as_view(), name='github_callback'),
     
     # Password reset
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset'),
-    path('password-reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     # OAuth test page
     path('oauth-test/', OAuthTestView.as_view(), name='oauth_test'),

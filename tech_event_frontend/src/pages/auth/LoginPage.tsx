@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Github } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Navigation from '@/components/Navigation';
+import { useSearchParams } from 'react-router-dom';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -22,6 +25,8 @@ const Login = () => {
   const { login, error, clearError } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const resetSuccess = searchParams.get('reset') === 'success';
   
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
@@ -40,12 +45,12 @@ const Login = () => {
   };
 
   const loginWithGoogle = () => {
-    const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/users/google/redirect/`;
+    const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/auth/google/redirect/`;
     window.location.href = googleAuthUrl;
   };
 
   const loginWithGithub = () => {
-    const githubAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/users/github/redirect/`;
+    const githubAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/auth/github/redirect/`;
     window.location.href = githubAuthUrl;
   };
   
@@ -61,6 +66,13 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {resetSuccess && (
+          <Alert>
+            <AlertDescription>
+              Your password has been reset successfully! You can now log in with your new password.
+            </AlertDescription>
+          </Alert>
+        )}
           {error && (
             <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm mb-4">
               {error}

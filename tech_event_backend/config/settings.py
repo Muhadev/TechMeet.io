@@ -71,6 +71,10 @@ INSTALLED_APPS = [
     'payments',
 ]
 
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'users.api.serializers.UserSerializer',
+}
+
 # User model
 AUTH_USER_MODEL = 'users.User'
 
@@ -126,17 +130,37 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# # Configure allauth to work with API-only setup
+# SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_QUERY_EMAIL = True
+# SOCIALACCOUNT_STORE_TOKENS = True
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+ACCOUNT_UNIQUE_EMAIL = True
+
+# Add this to prevent the signup redirect issue
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Disable allauth's default signup flow for API usage
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'users.api.serializers.RegisterSerializer',
+}
+
+# Configure allauth adapters for API-only usage
+SOCIALACCOUNT_ADAPTER = 'users.api.adapters.SocialAccountAdapter'
+
 # Site ID (required for django-allauth)
 SITE_ID = 1
 
 # Add these callback URLs for social authentication
-GITHUB_CALLBACK_URL = 'http://localhost:8000/api/auth/github/callback'  # For development
+GOOGLE_CALLBACK_URL = 'http://localhost:8000/api/auth/google/callback/'
+GITHUB_CALLBACK_URL = 'http://localhost:8000/api/auth/github/callback/'
+
 # GITHUB_CALLBACK_URL = 'https://yourdomain.com/api/auth/github/callback'  # For production
 
-GOOGLE_CALLBACK_URL = 'http://localhost:8000/api/auth/google/callback'  # For development
 # GOOGLE_CALLBACK_URL = 'https://yourdomain.com/api/auth/google/callback'  # For production
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 
 # Paystack settings
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')

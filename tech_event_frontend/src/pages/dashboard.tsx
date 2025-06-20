@@ -447,7 +447,7 @@ const formatRole = (role?: string) => {
                 <div className="w-10 h-10 bg-gradient-to-r text-white from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">TechMeet.io</h1>
+                <h1 className="text-xl font-bold text-gray-900"  onClick={() => navigate('/')}>TechMeet.io</h1>
             </div>
             <div className="hidden md:block">
             <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -592,7 +592,7 @@ const formatRole = (role?: string) => {
             </div>
             
             {/* Settings/Logout Dropdown */}
-            <div className="relative">
+            <div className="relative" onClick={() => navigate('/settings')}>
                 <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
                 <Settings className="w-5 h-5" />
                 </button>
