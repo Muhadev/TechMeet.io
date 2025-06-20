@@ -58,6 +58,15 @@ class EventViewSet(viewsets.ModelViewSet):
             else:
                 # Regular users only see published events
                 queryset = queryset.filter(status='PUBLISHED')
+
+        search_query = self.request.query_params.get('search', None)
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(location__icontains=search_query) |
+                Q(category__icontains=search_query)
+            )
         
         return queryset
     
