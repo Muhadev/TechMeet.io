@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-_cu1i@+54e@%z%w7qj@dp3fy-fli7^3gran8-nhhp*v#n74cjf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 # MEDIA_URL = '/banner/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
