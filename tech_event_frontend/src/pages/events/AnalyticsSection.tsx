@@ -17,12 +17,63 @@ import {
   Ticket
 } from 'lucide-react';
 
-const AnalyticsSection = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('30');
-  const [selectedEvent, setSelectedEvent] = useState('all');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [analyticsData, setAnalyticsData] = useState({
+// Type definitions
+interface TicketType {
+  ticket_type: string;
+  count: number;
+}
+
+interface EventStatistics {
+  total_tickets: number;
+  sold_tickets: number;
+  checked_in: number;
+  available_capacity: number;
+  occupancy_rate: number;
+  ticket_types?: TicketType[];
+}
+
+interface Event {
+  id: number;
+  title: string;
+  date: string;
+  price?: number;
+  statistics?: EventStatistics;
+}
+
+interface EventWithStatistics extends Event {
+  statistics: EventStatistics;
+}
+
+interface OverviewData {
+  totalEvents: number;
+  totalRevenue: number;
+  totalAttendees: number;
+  avgOccupancyRate: number;
+}
+
+interface AnalyticsData {
+  overview: OverviewData;
+  events: EventWithStatistics[];
+}
+
+interface StatCardProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  color?: string;
+}
+
+interface EventAnalyticsCardProps {
+  event: EventWithStatistics;
+}
+
+const AnalyticsSection: React.FC = () => {
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('30');
+  const [selectedEvent, setSelectedEvent] = useState<string>('all');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     overview: {
       totalEvents: 0,
       totalRevenue: 0,
@@ -32,114 +83,119 @@ const AnalyticsSection = () => {
     events: []
   });
 
-  // Mock events for the dropdown - replace with actual API call
-  const [userEvents, setUserEvents] = useState([]);
+  const [userEvents, setUserEvents] = useState<Event[]>([]);
 
   useEffect(() => {
     fetchUserEvents();
-    fetchAnalyticsData();
-  }, [selectedPeriod, selectedEvent]);
+  }, []);
 
-  const fetchUserEvents = async () => {
-  try {
+  useEffect(() => {
+    if (userEvents.length > 0) {
+      fetchAnalyticsData();
+    }
+  }, [selectedPeriod, selectedEvent, userEvents]);
+
+  const fetchUserEvents = async (): Promise<void> => {
+    try {
       // Fetch events where current user is the organizer
-      const response = await api.get('/events/?organizer=me'); // or however your API filters by organizer
+      const response = await api.get('/events/?organizer=me');
       // If that doesn't work, try just getting all events and filtering client-side
       // const response = await api.get('/events/');
       setUserEvents(response.data.results || response.data);
-  } catch (error) {
+    } catch (error) {
       console.error('Error fetching user events:', error);
-  }
-};
+      setUserEvents([]);
+    }
+  };
 
-  const fetchAnalyticsData = async () => {
-  setLoading(true);
-  setError(null);
-  
-  try {
-    let overview = {
-      totalEvents: 0,
-      totalRevenue: 0,
-      totalAttendees: 0,
-      avgOccupancyRate: 0
-    };
-    let eventsData = [];
+  const fetchAnalyticsData = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      let overview: OverviewData = {
+        totalEvents: 0,
+        totalRevenue: 0,
+        totalAttendees: 0,
+        avgOccupancyRate: 0
+      };
+      let eventsData: EventWithStatistics[] = [];
 
-    if (selectedEvent === 'all') {
-      // Fetch analytics for all events using axios
-      const promises = userEvents.map(async (event) => {
-        try {
-          const response = await api.get(`/events/${event.id}/statistics/`);
+      if (selectedEvent === 'all') {
+        // Fetch analytics for all events using axios
+        const promises = userEvents.map(async (event: Event) => {
+          try {
+            const response = await api.get(`/events/${event.id}/statistics/`);
+            return {
+              ...event,
+              statistics: response.data
+            } as EventWithStatistics;
+          } catch (error) {
+            console.error(`Error fetching stats for event ${event.id}:`, error);
+            return null;
+          }
+        });
+
+        const results = await Promise.all(promises);
+        eventsData = results.filter((item): item is EventWithStatistics => item !== null);
+
+        // Calculate overview metrics - Fix occupancy rate calculation
+        overview = eventsData.reduce((acc: OverviewData, event: EventWithStatistics) => {
+          const stats = event.statistics;
           return {
-            ...event,
-            statistics: response.data
+            totalEvents: acc.totalEvents + 1,
+            totalRevenue: acc.totalRevenue + (stats.sold_tickets * (event.price || 0)),
+            totalAttendees: acc.totalAttendees + stats.sold_tickets,
+            // API returns occupancy_rate as decimal, so multiply by 100 for percentage
+            // API returns occupancy_rate as percentage already
+            avgOccupancyRate: acc.avgOccupancyRate + stats.occupancy_rate
           };
-        } catch (error) {
-          console.error(`Error fetching stats for event ${event.id}:`, error);
-          return null;
+        }, overview);
+
+        if (eventsData.length > 0) {
+          overview.avgOccupancyRate = overview.avgOccupancyRate / eventsData.length;
         }
+
+      } else {
+        // Fetch analytics for specific event using axios
+        const response = await api.get(`/events/${selectedEvent}/statistics/`);
+        const stats: EventStatistics = response.data;
+        const event = userEvents.find((e: Event) => e.id.toString() === selectedEvent);
+        
+        if (event) {
+          eventsData = [{
+            ...event,
+            statistics: stats
+          }];
+
+          overview = {
+            totalEvents: 1,
+            totalRevenue: stats.sold_tickets * (event.price || 0),
+            totalAttendees: stats.sold_tickets,
+            // API returns occupancy_rate as decimal, so multiply by 100 for percentage
+            avgOccupancyRate: stats.occupancy_rate
+          };
+        }
+      }
+
+      setAnalyticsData({
+        overview,
+        events: eventsData
       });
 
-      const results = await Promise.all(promises);
-      eventsData = results.filter(Boolean);
-
-      // Calculate overview metrics - Fix occupancy rate calculation
-      overview = eventsData.reduce((acc, event) => {
-        const stats = event.statistics;
-        return {
-          totalEvents: acc.totalEvents + 1,
-          totalRevenue: acc.totalRevenue + (stats.sold_tickets * (event.price || 0)),
-          totalAttendees: acc.totalAttendees + stats.sold_tickets,
-          // API returns occupancy_rate as decimal, so multiply by 100 for percentage
-          // API returns occupancy_rate as percentage already
-            avgOccupancyRate: acc.avgOccupancyRate + stats.occupancy_rate
-        };
-      }, overview);
-
-      if (eventsData.length > 0) {
-        overview.avgOccupancyRate = overview.avgOccupancyRate / eventsData.length;
-      }
-
-    } else {
-      // Fetch analytics for specific event using axios
-      const response = await api.get(`/events/${selectedEvent}/statistics/`);
-      const stats = response.data;
-      const event = userEvents.find(e => e.id.toString() === selectedEvent);
-      
-      if (event) {
-        eventsData = [{
-          ...event,
-          statistics: stats
-        }];
-
-        overview = {
-          totalEvents: 1,
-          totalRevenue: stats.sold_tickets * (event.price || 0),
-          totalAttendees: stats.sold_tickets,
-          // API returns occupancy_rate as decimal, so multiply by 100 for percentage
-          avgOccupancyRate: stats.occupancy_rate
-        };
-      }
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      setError('Failed to load analytics data. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setAnalyticsData({
-      overview,
-      events: eventsData
-    });
-
-  } catch (error) {
-    console.error('Error fetching analytics data:', error);
-    setError('Failed to load analytics data. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleRefresh = () => {
+  const handleRefresh = (): void => {
     fetchAnalyticsData();
   };
 
-  const exportReport = () => {
+  const exportReport = (): void => {
     // Implement export functionality
     const csvContent = generateCSVReport();
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -151,9 +207,9 @@ const AnalyticsSection = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const generateCSVReport = () => {
+  const generateCSVReport = (): string => {
     const headers = ['Event Name', 'Total Tickets', 'Sold Tickets', 'Checked In', 'Available Capacity', 'Occupancy Rate'];
-    const rows = analyticsData.events.map(event => [
+    const rows = analyticsData.events.map((event: EventWithStatistics) => [
       event.title,
       event.statistics.total_tickets,
       event.statistics.sold_tickets,
@@ -165,7 +221,7 @@ const AnalyticsSection = () => {
     return [headers, ...rows].map(row => row.join(',')).join('\n');
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue' }) => (
+  const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, subtitle, color = 'blue' }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-medium text-gray-900">{title}</h3>
@@ -178,7 +234,7 @@ const AnalyticsSection = () => {
     </div>
   );
 
-  const EventAnalyticsCard = ({ event }) => {
+  const EventAnalyticsCard: React.FC<EventAnalyticsCardProps> = ({ event }) => {
     const stats = event.statistics;
     const occupancyPercentage = stats.occupancy_rate.toFixed(1);
     
@@ -190,9 +246,9 @@ const AnalyticsSection = () => {
             <p className="text-sm text-gray-600">{new Date(event.date).toLocaleDateString()}</p>
           </div>
           <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-            occupancyPercentage >= 80 
+            parseFloat(occupancyPercentage) >= 80 
               ? 'bg-green-100 text-green-800' 
-              : occupancyPercentage >= 50 
+              : parseFloat(occupancyPercentage) >= 50 
               ? 'bg-yellow-100 text-yellow-800'
               : 'bg-red-100 text-red-800'
           }`}>
@@ -230,9 +286,9 @@ const AnalyticsSection = () => {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className={`h-2 rounded-full ${
-                  occupancyPercentage >= 80 
+                  parseFloat(occupancyPercentage) >= 80 
                     ? 'bg-green-500' 
-                    : occupancyPercentage >= 50 
+                    : parseFloat(occupancyPercentage) >= 50 
                     ? 'bg-yellow-500'
                     : 'bg-red-500'
                 }`}
@@ -246,7 +302,7 @@ const AnalyticsSection = () => {
             <div className="mt-4 pt-4 border-t border-gray-100">
               <h4 className="text-sm font-medium text-gray-900 mb-2">Ticket Types</h4>
               <div className="space-y-2">
-                {stats.ticket_types.map((type, index) => (
+                {stats.ticket_types.map((type: TicketType, index: number) => (
                   <div key={index} className="flex justify-between items-center text-sm">
                     <span className="text-gray-600 capitalize">{type.ticket_type.toLowerCase()}</span>
                     <span className="font-medium">{type.count}</span>
@@ -286,7 +342,7 @@ const AnalyticsSection = () => {
             className="px-4 py-2 border border-gray-300 rounded-lg bg-white"
           >
             <option value="all">All Events</option>
-            {userEvents.map(event => (
+            {userEvents.map((event: Event) => (
               <option key={event.id} value={event.id}>{event.title}</option>
             ))}
           </select>
@@ -377,7 +433,7 @@ const AnalyticsSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {analyticsData.events.map(event => (
+            {analyticsData.events.map((event: EventWithStatistics) => (
               <EventAnalyticsCard key={event.id} event={event} />
             ))}
           </div>
@@ -391,20 +447,20 @@ const AnalyticsSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 mb-1">
-                {analyticsData.events.filter(e => e.statistics.occupancy_rate >= 0.8).length}
+                {analyticsData.events.filter((e: EventWithStatistics) => e.statistics.occupancy_rate >= 0.8).length}
               </div>
               <div className="text-sm text-gray-600">High-performing events (80%+ occupancy)</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 mb-1">
-                {analyticsData.events.reduce((sum, e) => sum + e.statistics.checked_in, 0)}
+                {analyticsData.events.reduce((sum: number, e: EventWithStatistics) => sum + e.statistics.checked_in, 0)}
               </div>
               <div className="text-sm text-gray-600">Total attendees checked in</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600 mb-1">
-                {((analyticsData.events.reduce((sum, e) => sum + e.statistics.checked_in, 0) / 
-                   analyticsData.events.reduce((sum, e) => sum + e.statistics.sold_tickets, 0)) * 100).toFixed(1)}%
+                {((analyticsData.events.reduce((sum: number, e: EventWithStatistics) => sum + e.statistics.checked_in, 0) / 
+                   analyticsData.events.reduce((sum: number, e: EventWithStatistics) => sum + e.statistics.sold_tickets, 0)) * 100).toFixed(1)}%
               </div>
               <div className="text-sm text-gray-600">Average check-in rate</div>
             </div>

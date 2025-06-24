@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import {
@@ -15,23 +15,41 @@ import {
   Clock,
   Tag,
   Copy,
-  ExternalLink,
   Facebook,
   Twitter,
   Linkedin,
   ArrowRight
 } from 'lucide-react';
 
+// Define interfaces for type safety
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  location: string;
+  category: string;
+  max_attendees: number;
+  ticket_price: number;
+  status: string;
+  banner_image?: string;
+}
+
+interface LocationState {
+  event?: Event;
+  action?: string;
+}
+
 export default function EventSuccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(10);
-  const [isAutoRedirect, setIsAutoRedirect] = useState(true);
-  const [shareMenuOpen, setShareMenuOpen] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [countdown, setCountdown] = useState<number>(10);
+  const [isAutoRedirect, setIsAutoRedirect] = useState<boolean>(true);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
-  // Get event data from navigation state
-  const { event, action } = location.state || {};
+  // Get event data from navigation state with proper typing
+  const { event, action } = (location.state as LocationState) || {};
 
   // Redirect to dashboard if no event data
   useEffect(() => {
@@ -66,7 +84,7 @@ export default function EventSuccessPage() {
   const isPublished = action === 'published';
   const eventUrl = `${window.location.origin}/events/${event.id}`;
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -75,14 +93,14 @@ export default function EventSuccessPage() {
     });
   };
 
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string): string => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(eventUrl);
       setCopySuccess(true);

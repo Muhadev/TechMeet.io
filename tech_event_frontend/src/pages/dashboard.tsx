@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext'
 import MyEventsSection from './events/MyEventsSection';
 import RecentEventsSection from './events/RecentEventsSection';
@@ -11,7 +11,6 @@ import {
   Calendar, 
   Users, 
   Ticket, 
-  DollarSign, 
   TrendingUp, 
   Plus,
   Zap,
@@ -24,8 +23,6 @@ import {
   Edit,
   MoreHorizontal,
   MapPin,
-  Clock,
-  Star,
   Filter,
   Download,
   QrCode,
@@ -34,20 +31,59 @@ import {
   XCircle,
   AlertCircle,
   Heart,
-  Share2,
-  UserCheck,
-  CreditCard,
-  Calendar as CalendarIcon,
-  Target,
-  Award
+  Share2
 } from 'lucide-react';
+
+// Define interfaces for type safety
+interface Event {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  attendees?: number;
+  capacity?: number;
+  revenue?: number;
+  status: string;
+  image: string;
+  ticketType?: string;
+  price?: number;
+  organizer?: string;
+  banner_image?: string;
+  start_date?: string;
+  ticket_price?: number;
+}
+
+interface Ticket {
+  id: number;
+  eventTitle: string;
+  attendeeName: string;
+  ticketType: string;
+  purchaseDate: string;
+  amount: number;
+  status: string;
+}
+
+interface NavigationItem {
+  id: string;
+  label: string;
+  icon: any;
+}
+
+interface User {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  role?: string;
+  profile_picture?: string;
+}
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [userRole, setUserRole] = useState('organizer'); // organizer, attendee, admin
   const [isMobile, setIsMobile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<Event[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const navigate = useNavigate();
@@ -99,23 +135,7 @@ useEffect(() => {
   return () => window.removeEventListener('resize', checkMobile);
 }, []);
 
-  // Mock data for organizers
-  const organizerStats = {
-    totalEvents: 12,
-    totalAttendees: 1247,
-    totalRevenue: 89750,
-    activeEvents: 3
-  };
-
-  // Mock data for attendees
-  const attendeeStats = {
-    upcomingEvents: 3,
-    totalTickets: 8,
-    eventsAttended: 12,
-    favoriteEvents: 5
-  };
-
-  const organizerEvents = [
+  const organizerEvents: Event[] = [
     {
       id: 1,
       title: "React Native Conference 2025",
@@ -154,7 +174,7 @@ useEffect(() => {
     }
   ];
 
-  const attendeeEvents = [
+  const attendeeEvents: Event[] = [
     {
       id: 1,
       title: "React Native Conference 2025",
@@ -193,7 +213,7 @@ useEffect(() => {
     }
   ];
 
-  const recentTickets = [
+  const recentTickets: Ticket[] = [
     {
       id: 1,
       eventTitle: "React Native Conference 2025",
@@ -223,7 +243,7 @@ useEffect(() => {
     }
   ];
 
-  const OrganizerEventCard = ({ event }) => (
+  const OrganizerEventCard = ({ event }: { event: Event }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative h-48 bg-gray-200">
         <img 
@@ -259,7 +279,7 @@ useEffect(() => {
         </div>
         <div className="flex items-center justify-between">
           <div className="text-lg font-semibold text-green-600">
-            ₦{event.revenue.toLocaleString()}
+            ₦{event.revenue?.toLocaleString() || '0'}
           </div>
           <div className="flex items-center space-x-2">
             <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
@@ -277,7 +297,7 @@ useEffect(() => {
     </div>
   );
 
-  const AttendeeEventCard = ({ event }) => (
+  const AttendeeEventCard = ({ event }: { event: Event }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative h-48 bg-gray-200">
         <img 
@@ -320,7 +340,7 @@ useEffect(() => {
         </div>
         <div className="flex items-center justify-between">
           <div className="text-lg font-semibold text-blue-600">
-            {event.price > 0 ? `₦${event.price.toLocaleString()}` : 'Free'}
+            {(event.price && event.price > 0) ? `₦${event.price.toLocaleString()}` : 'Free'}
           </div>
           <div className="flex items-center space-x-2">
             <button className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-50">
@@ -338,7 +358,7 @@ useEffect(() => {
     </div>
   );
 
-  const TicketRow = ({ ticket }) => (
+  const TicketRow = ({ ticket }: { ticket: Ticket }) => (
     <tr className="border-b border-gray-100 hover:bg-gray-50">
       <td className="px-6 py-4">
         <div>
@@ -377,8 +397,8 @@ useEffect(() => {
   );
 
   // Get navigation items based on user role
-  const getNavigationItems = () => {
-    const commonItems = [
+  const getNavigationItems = (): NavigationItem[] => {
+    const commonItems: NavigationItem[] = [
       { id: 'overview', label: 'Overview', icon: BarChart3 }
     ];
 
@@ -407,7 +427,7 @@ useEffect(() => {
 const { user, logout } = useAuth();
 
 // Helper function to get user initials
-const getUserInitials = (firstName?: string, lastName?: string, username?: string) => {
+const getUserInitials = (firstName?: string, lastName?: string, username?: string): string => {
   if (firstName && lastName) {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   }
@@ -418,7 +438,7 @@ const getUserInitials = (firstName?: string, lastName?: string, username?: strin
 };
 
 // Helper function to get display name
-const getDisplayName = (firstName?: string, lastName?: string, username?: string) => {
+const getDisplayName = (firstName?: string, lastName?: string, username?: string): string => {
   if (firstName && lastName) {
     return `${firstName} ${lastName}`;
   }
@@ -432,7 +452,7 @@ const getDisplayName = (firstName?: string, lastName?: string, username?: string
 };
 
 // Helper function to format role for display
-const formatRole = (role?: string) => {
+const formatRole = (role?: string): string => {
   if (!role) return 'user';
   return role.toLowerCase().replace('_', ' ');
 };
@@ -447,7 +467,7 @@ const formatRole = (role?: string) => {
                 <div className="w-10 h-10 bg-gradient-to-r text-white from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900"  onClick={() => navigate('/')}>TechMeet.io</h1>
+                <h1 className="text-xl font-bold text-gray-900 cursor-pointer" onClick={() => navigate('/')}>TechMeet.io</h1>
             </div>
             <div className="hidden md:block">
             <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -502,7 +522,7 @@ const formatRole = (role?: string) => {
                                     {event.title}
                                 </h4>
                                 <div className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
-                                    <span>{new Date(event.start_date).toLocaleDateString()}</span>
+                                    <span>{event.start_date ? new Date(event.start_date).toLocaleDateString() : 'No date'}</span>
                                     {event.location && (
                                     <>
                                         <span>•</span>
@@ -510,7 +530,7 @@ const formatRole = (role?: string) => {
                                     </>
                                     )}
                                 </div>
-                                {event.ticket_price > 0 && (
+                                {event.ticket_price && event.ticket_price > 0 && (
                                     <div className="text-xs font-medium text-blue-600 mt-1">
                                     ₦{event.ticket_price.toLocaleString()}
                                     </div>
@@ -522,7 +542,7 @@ const formatRole = (role?: string) => {
                                     ? 'bg-green-100 text-green-800' 
                                     : 'bg-yellow-100 text-yellow-800'
                                 }`}>
-                                    {event.status.toLowerCase()}
+                                    {event.status ? event.status.toLowerCase() : 'unknown'}
                                 </span>
                                 </div>
                             </div>
@@ -592,8 +612,11 @@ const formatRole = (role?: string) => {
             </div>
             
             {/* Settings/Logout Dropdown */}
-            <div className="relative" onClick={() => navigate('/settings')}>
-                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+            <div className="relative">
+                <button 
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                    onClick={() => navigate('/settings')}
+                >
                 <Settings className="w-5 h-5" />
                 </button>
                 {/* You can add a dropdown menu here for settings and logout */}
@@ -646,10 +669,13 @@ const formatRole = (role?: string) => {
                     )}
                 </button>
                 
-                <button className={`w-full flex items-center ${isMobile ? 'justify-center px-2' : 'space-x-3 px-3'} py-2 text-gray-600 hover:bg-gray-50 rounded-lg group relative`}
-                        title={isMobile ? 'Settings' : ''}>
+                <button 
+                    className={`w-full flex items-center ${isMobile ? 'justify-center px-2' : 'space-x-3 px-3'} py-2 text-gray-600 hover:bg-gray-50 rounded-lg group relative`}
+                    title={isMobile ? 'Settings' : ''}
+                    onClick={() => navigate('/settings')}
+                >
                     <Settings className="w-5 h-5 flex-shrink-0" />
-                    {!isMobile && <span className="font-medium"><a href="/settings">Settings</a></span>}
+                    {!isMobile && <span className="font-medium">Settings</span>}
                     {isMobile && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
                         Settings

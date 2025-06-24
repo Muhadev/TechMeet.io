@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 const TechMeetLanding = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('create');
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
@@ -150,7 +150,7 @@ const TechMeetLanding = () => {
       </div>
 
       {/* Navigation */}
-      <Navigation showAuthButtons={true} />
+      <Navigation/>
 
       {/* Hero Section */}
       <section className="relative z-10 px-6 py-20 text-center">
@@ -158,7 +158,7 @@ const TechMeetLanding = () => {
           <div className="mb-8">
             <div className="inline-flex items-center px-4 py-2 bg-blue-500/20 rounded-full text-blue-300 text-sm mb-6">
               <Star className="w-4 h-4 mr-2" />
-              Trusted by 10,000+ Event Organizers
+              Trusted by 10+ Event Organizers
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               Create Unforgettable
@@ -174,7 +174,7 @@ const TechMeetLanding = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 flex items-center">
-              Start Free Trial
+              <span><a href="events/create-event">Start Free Trial</a></span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
             <button className="px-8 py-4 bg-white/10 backdrop-blur-lg rounded-xl text-lg font-semibold hover:bg-white/20 transition-all flex items-center">
@@ -186,8 +186,8 @@ const TechMeetLanding = () => {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16">
             {[
-              { number: "500K+", label: "Events Created" },
-              { number: "10M+", label: "Tickets Sold" },
+              { number: "20+", label: "Events Created" },
+              { number: "10+", label: "Tickets Sold" },
               { number: "99.9%", label: "Uptime" },
               { number: "24/7", label: "Support" }
             ].map((stat, index) => (

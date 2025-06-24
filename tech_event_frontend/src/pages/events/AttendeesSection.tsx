@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
 import { 
   Users, 
-  Filter, 
   Download, 
   Mail, 
   Search,
@@ -16,15 +15,42 @@ import {
   Loader2
 } from 'lucide-react';
 
+// Type definitions
+interface Event {
+  id: string;
+  title: string;
+}
+
+interface Attendee {
+  user_id: string;
+  name: string;
+  email: string;
+  ticket_number: string;
+  ticket_type: string;
+  checked_in: boolean;
+  checked_in_time: string | null;
+}
+
+interface Stats {
+  total: number;
+  checkedIn: number;
+  pending: number;
+}
+
+interface ApiResponse<T> {
+  results?: T[];
+  data?: T;
+}
+
 // Add this component inside your Dashboard component where the attendees section is
 const AttendeesSection = () => {
-  const [attendees, setAttendees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [events, setEvents] = useState([]);
-  const [stats, setStats] = useState({
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [events, setEvents] = useState<Event[]>([]);
+  const [stats, setStats] = useState<Stats>({
     total: 0,
     checkedIn: 0,
     pending: 0
@@ -47,45 +73,44 @@ const AttendeesSection = () => {
     calculateStats();
   }, [attendees]);
 
-  const fetchEvents = async () => {
-  try {
-    const response = await api.get('/events/');
-    
-    if (response.status === 200) {
-      const data = response.data;
-      setEvents(data.results || data);
-      // Auto-select first event if available
-      if (data.results && data.results.length > 0) {
-        setSelectedEvent(data.results[0].id);
-      } else if (data.length > 0) {
-        setSelectedEvent(data[0].id);
+  const fetchEvents = async (): Promise<void> => {
+    try {
+      const response = await api.get<Event[] | ApiResponse<Event>>('/events/');
+      
+      if (response.status === 200) {
+        const data = response.data;
+        const eventsArray = Array.isArray(data) ? data : (data.results || []);
+        setEvents(eventsArray);
+        // Auto-select first event if available
+        if (eventsArray.length > 0) {
+          setSelectedEvent(eventsArray[0].id);
+        }
       }
+    } catch (err) {
+      console.error('Error fetching events:', err);
     }
-  } catch (error) {
-    console.error('Error fetching events:', error);
-  }
-};
+  };
 
-  const fetchAttendees = async (eventId) => {
-  setLoading(true);
-  setError(null);
-  
-  try {
-    const response = await api.get(`/events/${eventId}/attendees/`);
+  const fetchAttendees = async (eventId: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
     
-    if (response.status === 200) {
-      setAttendees(response.data);
+    try {
+      const response = await api.get<Attendee[]>(`/events/${eventId}/attendees/`);
+      
+      if (response.status === 200) {
+        setAttendees(response.data);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      setAttendees([]);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    setError(error.message);
-    setAttendees([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-  const calculateStats = () => {
+  const calculateStats = (): void => {
     const total = attendees.length;
     const checkedIn = attendees.filter(attendee => attendee.checked_in).length;
     const pending = total - checkedIn;
@@ -93,29 +118,29 @@ const AttendeesSection = () => {
     setStats({ total, checkedIn, pending });
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = (): void => {
     if (selectedEvent) {
       fetchAttendees(selectedEvent);
     }
   };
 
-  const handleCheckIn = async (attendeeId, ticketNumber) => {
-  try {
-    const response = await api.post('/tickets/check_in/', {
-      ticket_number: ticketNumber
-    });
+  const handleCheckIn = async (ticketNumber: string): Promise<void> => {
+    try {
+      const response = await api.post('/tickets/check_in/', {
+        ticket_number: ticketNumber
+      });
 
-    if (response.status === 200) {
-      // Refresh attendees list
-      fetchAttendees(selectedEvent);
+      if (response.status === 200) {
+        // Refresh attendees list
+        fetchAttendees(selectedEvent);
+      }
+    } catch (err) {
+      console.error('Error checking in attendee:', err);
+      alert('Failed to check in attendee. Please try again.');
     }
-  } catch (error) {
-    console.error('Error checking in attendee:', error);
-    alert('Failed to check in attendee. Please try again.');
-  }
-};
+  };
 
-  const handleExport = () => {
+  const handleExport = (): void => {
     // Create CSV content
     const headers = ['Name', 'Email', 'Ticket Number', 'Ticket Type', 'Check-in Status', 'Check-in Time'];
     const csvContent = [
@@ -149,14 +174,7 @@ const AttendeesSection = () => {
     attendee.ticket_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusIcon = (checkedIn) => {
-    if (checkedIn) {
-      return <CheckCircle className="w-4 h-4 text-green-600" />;
-    }
-    return <Clock className="w-4 h-4 text-yellow-600" />;
-  };
-
-  const getStatusBadge = (checkedIn, checkedInTime) => {
+  const getStatusBadge = (checkedIn: boolean): JSX.Element => {
     if (checkedIn) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -333,13 +351,13 @@ const AttendeesSection = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAttendees.map((attendee, index) => (
+                {filteredAttendees.map((attendee) => (
                   <tr key={`${attendee.user_id}-${attendee.ticket_number}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
                           <span className="text-sm font-medium text-white">
-                            {attendee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {attendee.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                           </span>
                         </div>
                         <div>
@@ -355,7 +373,7 @@ const AttendeesSection = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(attendee.checked_in, attendee.checked_in_time)}
+                      {getStatusBadge(attendee.checked_in)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {attendee.checked_in_time 
@@ -367,7 +385,7 @@ const AttendeesSection = () => {
                       <div className="flex items-center space-x-2">
                         {!attendee.checked_in && (
                           <button 
-                            onClick={() => handleCheckIn(attendee.user_id, attendee.ticket_number)}
+                            onClick={() => handleCheckIn(attendee.ticket_number)}
                             className="text-green-600 hover:text-green-900 font-medium"
                           >
                             Check In
@@ -391,4 +409,5 @@ const AttendeesSection = () => {
     </div>
   );
 };
+
 export default AttendeesSection;

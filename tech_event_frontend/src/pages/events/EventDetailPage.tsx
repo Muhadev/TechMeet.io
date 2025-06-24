@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
@@ -26,34 +26,81 @@ import {
   Tag
 } from 'lucide-react';
 
+// TypeScript interfaces
+interface OrganizerDetails {
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
+}
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  location: string;
+  ticket_price: string;
+  max_attendees: number;
+  status: string;
+  category: string;
+  banner_image?: string;
+  organizer_details: OrganizerDetails;
+}
+
+interface TicketData {
+  id: number;
+  ticket_number: string;
+  event_id: number;
+  ticket_type: string;
+}
+
+interface PaymentData {
+  reference: string;
+  authorization_url: string;
+}
+
+interface TicketType {
+  value: string;
+  label: string;
+  description: string;
+}
+
+interface ApiError {
+  error?: string;
+  message?: string;
+}
+
 export default function EventDetailPage() {
   
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   // State management
-  const [event, setEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [ticketQuantity, setTicketQuantity] = useState(1);
-  const [isBooking, setIsBooking] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [shareMenuOpen, setShareMenuOpen] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [ticketType, setTicketType] = useState('STANDARD');
-  const [customImage, setCustomImage] = useState(null);
-  const [bookingStep, setBookingStep] = useState('booking'); // 'booking' | 'processing' | 'payment'
-  const [ticketData, setTicketData] = useState(null);
-  const [paymentData, setPaymentData] = useState(null);
+  const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [ticketQuantity, setTicketQuantity] = useState<number>(1);
+  const [isBooking, setIsBooking] = useState<boolean>(false);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [shareMenuOpen, setShareMenuOpen] = useState<boolean>(false);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
+  const [ticketType, setTicketType] = useState<string>('STANDARD');
+  const [customImage, setCustomImage] = useState<File | null>(null);
+  const [bookingStep, setBookingStep] = useState<'booking' | 'processing' | 'payment'>('booking');
+  const [ticketData, setTicketData] = useState<TicketData | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
 
 // Available ticket types
-const ticketTypes = [
+const ticketTypes: TicketType[] = [
   { value: 'STANDARD', label: 'Standard', description: 'Access to all event activities' },
   { value: 'VIP', label: 'VIP', description: 'Premium access with exclusive benefits' },
   { value: 'EARLY_BIRD', label: 'Early Bird', description: 'Special early registration pricing' },
 ];
-const handleBookingSubmit = async () => {
+
+const handleBookingSubmit = async (): Promise<void> => {
   if (!event?.id) return;
   
   setIsBooking(true);
@@ -70,7 +117,7 @@ const handleBookingSubmit = async () => {
     }
 
     // Create ticket
-    const ticketResponse = await api.post('/tickets/purchase/', formData, {
+    const ticketResponse = await api.post<TicketData>('/tickets/purchase/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -90,7 +137,7 @@ const handleBookingSubmit = async () => {
     // For paid events, initiate payment
     setBookingStep('payment');
     
-    const paymentResponse = await api.post('/payments/initiate/', {
+    const paymentResponse = await api.post<PaymentData>('/payments/initiate/', {
       ticket_id: ticket.id
     });
 
@@ -103,10 +150,11 @@ const handleBookingSubmit = async () => {
     // Show success message with payment info
     alert(`Ticket created successfully! Complete your payment to confirm your booking. Reference: ${payment.reference}`);
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Booking error:', error);
-    const errorMessage = error.response?.data?.error || 
-                        error.response?.data?.message || 
+    const apiError = error as { response?: { data?: ApiError } };
+    const errorMessage = apiError.response?.data?.error || 
+                        apiError.response?.data?.message || 
                         'Booking failed. Please try again.';
     alert(errorMessage);
   } finally {
@@ -117,8 +165,8 @@ const handleBookingSubmit = async () => {
 };
 
 // File upload handler
-const handleImageUpload = (event) => {
-  const file = event.target.files[0];
+const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const file = event.target.files?.[0];
   if (file) {
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
@@ -139,13 +187,14 @@ const handleImageUpload = (event) => {
 
   // Fetch event data
   useEffect(() => {
-    const fetchEvent = async () => {
+    const fetchEvent = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response = await api.get(`/events/${id}/`);
+        const response = await api.get<Event>(`/events/${id}/`);
         setEvent(response.data);
-      } catch (err) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -191,7 +240,7 @@ const handleImageUpload = (event) => {
 
   if (!event) return null;
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -200,7 +249,7 @@ const handleImageUpload = (event) => {
     });
   };
 
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string): string => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
@@ -211,7 +260,7 @@ const handleImageUpload = (event) => {
   const eventUrl = `${window.location.origin}/events/${event.id}`;
   const isFree = parseFloat(event.ticket_price) === 0;
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(eventUrl);
       setCopySuccess(true);
@@ -226,22 +275,6 @@ const handleImageUpload = (event) => {
     twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(eventUrl)}&text=${encodeURIComponent(`Check out this event: ${event.title}`)}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventUrl)}`
   };
-
-//   const handleBookingSubmit = async () => {
-//     setIsBooking(true);
-    
-//     // Simulate booking API call
-//     try {
-//       await new Promise(resolve => setTimeout(resolve, 2000));
-//       // Handle successful booking
-//       alert(`Successfully booked ${ticketQuantity} ticket(s)!`);
-//       setShowBookingModal(false);
-//     } catch (err) {
-//       alert('Booking failed. Please try again.');
-//     } finally {
-//       setIsBooking(false);
-//     }
-//   };
 
   return (
     <div>

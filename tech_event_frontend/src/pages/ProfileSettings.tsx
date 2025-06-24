@@ -1,21 +1,36 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, ChangeEvent, FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Navigation from '@/components/Navigation';
 import { User, Camera, Save, AlertCircle, CheckCircle2, X, Settings } from 'lucide-react';
 
+// Define interfaces for better type safety
+interface FormData {
+  first_name: string;
+  last_name: string;
+}
+
+interface UserProfile {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  email?: string;
+  profile_picture?: string;
+  role?: string;
+}
+
 const ProfileSettings = () => {
   const { user, updateProfile, isLoading, error, clearError } = useAuth();
-  const [formData, setFormData] = useState({
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
+  const [formData, setFormData] = useState<FormData>({
+    first_name: (user as UserProfile)?.first_name || '',
+    last_name: (user as UserProfile)?.last_name || '',
   });
-  const [profileImage, setProfileImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user?.profile_picture || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const fileInputRef = useRef(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>((user as UserProfile)?.profile_picture || '');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -24,8 +39,8 @@ const ProfileSettings = () => {
     clearError();
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
@@ -43,8 +58,11 @@ const ProfileSettings = () => {
       
       // Create preview URL
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewUrl(e.target.result);
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          setPreviewUrl(result);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -64,7 +82,8 @@ const ProfileSettings = () => {
         updateData.append('profile_picture', profileImage);
       }
 
-      await updateProfile(updateData);
+      // Type assertion for updateProfile - adjust based on your actual updateProfile function signature
+      await updateProfile(updateData as any);
       setSuccessMessage('Profile updated successfully!');
       setProfileImage(null);
       
@@ -85,7 +104,7 @@ const ProfileSettings = () => {
 
   const removeImage = () => {
     setProfileImage(null);
-    setPreviewUrl(user?.profile_picture || '');
+    setPreviewUrl((user as UserProfile)?.profile_picture || '');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -101,6 +120,8 @@ const ProfileSettings = () => {
       </div>
     );
   }
+
+  const userProfile = user as UserProfile;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -167,13 +188,13 @@ const ProfileSettings = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-gray-900">
-                  {user?.first_name} {user?.last_name}
+                  {userProfile?.first_name} {userProfile?.last_name}
                 </h3>
-                <p className="text-gray-600 mt-1">@{user?.username}</p>
-                <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
+                <p className="text-gray-600 mt-1">@{userProfile?.username}</p>
+                <p className="text-gray-500 text-sm mt-1">{userProfile?.email}</p>
                 <div className="mt-2">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {user?.role}
+                    {userProfile?.role}
                   </span>
                 </div>
               </div>
@@ -291,7 +312,7 @@ const ProfileSettings = () => {
                   </label>
                   <input
                     type="text"
-                    value={user?.username || ''}
+                    value={userProfile?.username || ''}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
                     disabled
                   />
@@ -304,7 +325,7 @@ const ProfileSettings = () => {
                   </label>
                   <input
                     type="email"
-                    value={user?.email || ''}
+                    value={userProfile?.email || ''}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
                     disabled
                   />

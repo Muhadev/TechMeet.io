@@ -1,0 +1,90 @@
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/App.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/App.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/context/AuthContext.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/context/AuthContext.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/context/ThemeContext.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/context/ThemeContext.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/lib/axios.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/lib/axios.ts'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/lib/token.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/lib/token.ts'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/lib/utils.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/lib/utils.ts'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/main.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/main.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/EventStatistics.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/EventStatistics.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/HomePage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/HomePage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/ProfileSettings.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/ProfileSettings.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/AuthCallback.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/AuthCallback.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/ForgotPasswordPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/ForgotPasswordPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/LoginPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/LoginPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/RegisterPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/RegisterPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/ResetPasswordPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/auth/ResetPasswordPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/dashboard.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/dashboard.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/AnalyticsSection.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/AnalyticsSection.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/AttendeesSection.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/AttendeesSection.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/CreateEventPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/CreateEventPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/EventDetailPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/EventDetailPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/EventSuccessPage.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/EventSuccessPage.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/MyEventsSection.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/MyEventsSection.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/RecentEventsSection.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/pages/events/RecentEventsSection.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/routes/PrivateRoute.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/routes/PrivateRoute.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/routes/RoleBasedRoute.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/routes/RoleBasedRoute.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/routes/index.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/routes/index.tsx'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.tsx' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/types/event.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/types/event.ts'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/types/index.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/types/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/src/types/profile.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/src/types/profile.ts'.
+  The file is in the program because:
+    Matched by include pattern 'src/**/*.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'
+error TS6305: Output file '/home/muhadev/TechMeet.io/tech_event_frontend/vite.config.d.ts' has not been built from source file '/home/muhadev/TechMeet.io/tech_event_frontend/vite.config.ts'.
+  The file is in the program because:
+    Matched by include pattern 'vite.config.ts' in '/home/muhadev/TechMeet.io/tech_event_frontend/tsconfig.json'

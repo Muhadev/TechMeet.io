@@ -1,25 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Users, 
   Ticket, 
   UserCheck, 
   TrendingUp,
   Calendar,
-  Target
+  Target,
+  LucideIcon
 } from 'lucide-react';
 import api from '../lib/axios';
 
-// Individual Stat Card Component
-const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue' }) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-    red: 'bg-red-50 text-red-600'
-  };
+// Type definitions
+interface TicketType {
+  ticket_type: string;
+  // Add other properties as needed
+}
 
+interface EventStatistics {
+  total_tickets: number;
+  sold_tickets: number;
+  checked_in: number;
+  occupancy_rate: number;
+  ticket_types: TicketType[];
+}
+
+interface StatCardProps {
+  icon: LucideIcon;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  color?: keyof typeof colorClasses;
+}
+
+interface EventStatisticsProps {
+  eventId: string | number;
+}
+
+// Color classes type
+const colorClasses = {
+  blue: 'bg-blue-50 text-blue-600',
+  green: 'bg-green-50 text-green-600',
+  purple: 'bg-purple-50 text-purple-600',
+  orange: 'bg-orange-50 text-orange-600',
+  indigo: 'bg-indigo-50 text-indigo-600',
+  red: 'bg-red-50 text-red-600'
+} as const;
+
+// Individual Stat Card Component
+const StatCard: React.FC<StatCardProps> = ({ 
+  icon: Icon, 
+  title, 
+  value, 
+  subtitle, 
+  color = 'blue' 
+}) => {
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-center justify-between">
@@ -39,17 +72,18 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue' }) => {
 };
 
 // Main Event Statistics Component
-const EventStatistics = ({ eventId }) => {
-  const [statistics, setStatistics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const EventStatistics: React.FC<EventStatisticsProps> = ({ eventId }) => {
+  const [statistics, setStatistics] = useState<EventStatistics | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStatistics = async () => {
+    const fetchStatistics = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response = await api.get(`/events/${eventId}/statistics/`);
+        const response = await api.get<EventStatistics>(`/events/${eventId}/statistics/`);
         setStatistics(response.data);
+        setError(null); // Clear any previous errors
       } catch (err) {
         console.error('Error fetching event statistics:', err);
         setError('Failed to load statistics');
@@ -134,15 +168,6 @@ const EventStatistics = ({ eventId }) => {
         subtitle={`${checkInPercentage}% of sold tickets`}
         color="purple"
       />
-
-      {/* Available Capacity */}
-      {/* <StatCard
-        icon={Users}
-        title="Available Capacity"
-        value={statistics.available_capacity.toLocaleString()}
-        subtitle="Remaining spots"
-        color="orange"
-      /> */}
 
       {/* Occupancy Rate */}
       <StatCard

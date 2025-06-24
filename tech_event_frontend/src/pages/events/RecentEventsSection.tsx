@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -12,10 +12,30 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+// Define the Event interface
+interface Event {
+  id: string | number;
+  title: string;
+  start_date: string;
+  end_date?: string;
+  location: string;
+  max_attendees: number;
+  ticket_price?: string | number;
+  status?: string;
+  banner_image?: string;
+  category?: string;
+  created_at: string;
+}
+
+// Define EventCard props interface
+interface EventCardProps {
+  event: Event;
+}
+
 const RecentEventsSection = () => {
-  const [recentEvents, setRecentEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Fetch recent events from API
@@ -25,7 +45,9 @@ const RecentEventsSection = () => {
         setLoading(true);
         const response = await api.get('/events/');
         // Sort by created_at and get only the 3 most recent
-        const sortedEvents = response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const sortedEvents = response.data.sort((a: Event, b: Event) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
         setRecentEvents(sortedEvents.slice(0, 3));
         setError(null);
       } catch (err) {
@@ -40,7 +62,7 @@ const RecentEventsSection = () => {
   }, []);
 
   // Get image URL helper function (same as in MyEventsSection)
-  const getImageUrl = (imageUrl) => {
+  const getImageUrl = (imageUrl: string): string | null => {
     if (!imageUrl) return null;
     
     // If the URL already starts with http:// or https://, return as is
@@ -55,7 +77,7 @@ const RecentEventsSection = () => {
   };
 
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -65,7 +87,7 @@ const RecentEventsSection = () => {
   };
 
   // Format time for display
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -75,30 +97,31 @@ const RecentEventsSection = () => {
   };
 
   // Get status badge styling
-  const getStatusBadge = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'published':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const getStatusBadge = (status?: string): string => {
+  switch (status?.toLowerCase()) {
+    case 'published':
+      return 'bg-green-100 text-green-800';
+    case 'draft':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
 
   // Event Card Component
-  const EventCard = ({ event }) => (
+  const EventCard = ({ event }: EventCardProps) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative h-48 bg-gray-200">
         {event.banner_image ? (
           <img 
-            src={getImageUrl(event.banner_image)}
+            src={getImageUrl(event.banner_image) || undefined}
             alt={event.title}
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop';
+              const target = e.target as HTMLImageElement;
+              target.src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop';
             }}
           />
         ) : (
@@ -108,7 +131,7 @@ const RecentEventsSection = () => {
         )}
         <div className="absolute top-3 right-3">
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(event.status)}`}>
-            {event.status?.charAt(0).toUpperCase() + event.status?.slice(1).toLowerCase() || 'Draft'}
+            {event.status ? event.status.charAt(0).toUpperCase() + event.status.slice(1).toLowerCase() : 'Draft'}
           </span>
         </div>
         {event.category && (
@@ -147,8 +170,8 @@ const RecentEventsSection = () => {
         
         <div className="flex items-center justify-between">
           <div className="text-lg font-semibold text-green-600">
-            {event.ticket_price && parseFloat(event.ticket_price) > 0 
-              ? `₦${parseFloat(event.ticket_price).toLocaleString()}`
+            {event.ticket_price && parseFloat(event.ticket_price.toString()) > 0 
+              ? `₦${parseFloat(event.ticket_price.toString()).toLocaleString()}`
               : 'Free'
             }
           </div>

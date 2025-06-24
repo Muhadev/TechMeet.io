@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import api from '@/lib/axios'; // Use your axios instance instead of fetch
+import api from '@/lib/axios';
 import { 
   CalendarDays, 
   MapPin, 
@@ -49,21 +49,22 @@ const eventSchema = z.object({
   path: ["start_date"]
 });
 
-// Draft schema - more lenient validation for drafts
-const draftEventSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(255, 'Title must be less than 255 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
-  location: z.string().optional(),
-  start_date: z.string().optional(),
-  end_date: z.string().optional(),
-  category: z.string().min(1, 'Category is required'),
-  max_attendees: z.number().min(1, 'Must allow at least 1 attendee').max(10000, 'Maximum 10,000 attendees allowed'),
-  ticket_price: z.number().min(0, 'Price cannot be negative').max(1000000, 'Price too high'),
-  status: z.enum(['DRAFT', 'PUBLISHED']),
-  banner_image: z.any().optional()
-});
-
 type EventFormData = z.infer<typeof eventSchema>;
+
+// API Error type
+interface ApiError {
+  response?: {
+    status: number;
+    data: {
+      errors?: Record<string, string | string[]>;
+      error?: string;
+      message?: string;
+      non_field_errors?: string | string[];
+    };
+  };
+  request?: any;
+  message?: string;
+}
 
 const categories = [
   'Technology',
@@ -85,7 +86,7 @@ export default function CreateEventPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
@@ -96,20 +97,25 @@ export default function CreateEventPage() {
     handleSubmit,
     formState: { errors, isDirty },
     watch,
-    setValue,
     reset,
     trigger
-  } = useForm({
+  } = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
       status: 'DRAFT',
       max_attendees: 50,
-      ticket_price: 0
+      ticket_price: 0,
+      title: '',
+      description: '',
+      location: '',
+      start_date: '',
+      end_date: '',
+      category: ''
     },
     mode: 'onChange'
   });
 
-  const formatDateTimeLocal = (date) => {
+  const formatDateTimeLocal = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -118,8 +124,8 @@ export default function CreateEventPage() {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target?.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
@@ -135,8 +141,11 @@ export default function CreateEventPage() {
 
       setSelectedImage(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          setImagePreview(result);
+        }
       };
       reader.readAsDataURL(file);
       setSubmitError('');
@@ -147,11 +156,11 @@ export default function CreateEventPage() {
     setSelectedImage(null);
     setImagePreview('');
     // Reset the file input
-    const fileInput = document.getElementById('banner_image');
+    const fileInput = document.getElementById('banner_image') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   };
 
-  const submitEvent = async (data, actionType) => {
+  const submitEvent = async (data: EventFormData, actionType: 'draft' | 'publish') => {
     console.log('submitEvent called with:', { data, actionType });
     
     const isPublish = actionType === 'publish';
@@ -204,7 +213,7 @@ export default function CreateEventPage() {
       // Use your axios instance instead of fetch
       const response = await api.post('/events/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', // Set proper content type for file upload
+          'Content-Type': 'multipart/form-data',
         },
       });
 
@@ -218,8 +227,10 @@ export default function CreateEventPage() {
           action: isPublish ? 'published' : 'saved'
         }
       });
-    } catch (error) {
-      console.error('Error creating event:', error);
+    } catch (unknownError) {
+      console.error('Error creating event:', unknownError);
+      
+      const error = unknownError as ApiError;
       
       if (error.response) {
         // Server responded with error status
@@ -233,7 +244,7 @@ export default function CreateEventPage() {
           setSubmitError('You do not have permission to create events. Please contact an administrator.');
         } else if (error.response.status === 400) {
           // Handle validation errors
-          const errorMessages = [];
+          const errorMessages: string[] = [];
           if (errorData.errors) {
             Object.entries(errorData.errors).forEach(([field, messages]) => {
               errorMessages.push(`${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`);
@@ -278,8 +289,8 @@ export default function CreateEventPage() {
     console.log('Current form values:', currentValues);
     
     // Validate minimal required fields for draft
-    const requiredFields = ['title', 'description', 'category'];
-    const missingFields = [];
+    const requiredFields: (keyof EventFormData)[] = ['title', 'description', 'category'];
+    const missingFields: string[] = [];
     
     for (const field of requiredFields) {
       if (!currentValues[field] || String(currentValues[field]).trim() === '') {
@@ -316,7 +327,7 @@ export default function CreateEventPage() {
     setSubmitError('');
     
     // Submit the form with full validation
-    handleSubmit((data) => {
+    handleSubmit((data: EventFormData) => {
       console.log('Publishing with data:', data);
       submitEvent(data, 'publish');
     })();
@@ -438,7 +449,10 @@ export default function CreateEventPage() {
                   
                   <button
                     type="button"
-                    onClick={() => document.getElementById('banner_image').click()}
+                    onClick={() => {
+                      const fileInput = document.getElementById('banner_image') as HTMLInputElement;
+                      fileInput?.click();
+                    }}
                     className="px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
                     disabled={isSubmitting}
                   >
@@ -564,7 +578,7 @@ export default function CreateEventPage() {
                     <input
                       {...register('end_date')}
                       type="datetime-local"
-                      min={watch('start_date')}
+                      min={watch('start_date') || ''}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50"
                       disabled={isSubmitting}
                     />

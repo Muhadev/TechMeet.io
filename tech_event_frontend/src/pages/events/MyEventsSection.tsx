@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../lib/axios';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -17,15 +17,31 @@ import {
   X
 } from 'lucide-react';
 
+// Define the Event interface
+interface Event {
+  id: string | number;
+  title: string;
+  description?: string;
+  location: string;
+  status: string;
+  category?: string;
+  created_at: string;
+  start_date: string;
+  end_date?: string;
+  max_attendees: number;
+  ticket_price?: string | number;
+  banner_image?: string;
+}
+
 const MyEventsSection = () => {
-  const [events, setEvents] = useState([]);
-  const [allEvents, setAllEvents] = useState([]); // Store all events for filtering
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showFilter, setShowFilter] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [events, setEvents] = useState<Event[]>([]);
+  const [allEvents, setAllEvents] = useState<Event[]>([]); // Store all events for filtering
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showFilter, setShowFilter] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
 
   const navigate = useNavigate();
 
@@ -35,7 +51,9 @@ const MyEventsSection = () => {
       try {
         setLoading(true);
         const response = await api.get('/events/my_events/');
-        const sortedEvents = response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const sortedEvents = response.data.sort((a: Event, b: Event) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
         setAllEvents(sortedEvents);
         // Show only the 3 newest events initially
         setEvents(sortedEvents.slice(0, 2));
@@ -91,13 +109,13 @@ const MyEventsSection = () => {
   };
 
   // Get unique categories for filter dropdown
-  const getUniqueCategories = () => {
-    const categories = allEvents.map(event => event.category).filter(Boolean);
+  const getUniqueCategories = (): string[] => {
+    const categories = allEvents.map(event => event.category).filter(Boolean) as string[];
     return [...new Set(categories)];
   };
 
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -107,7 +125,7 @@ const MyEventsSection = () => {
   };
 
   // Format time for display
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -117,7 +135,7 @@ const MyEventsSection = () => {
   };
 
   // Get status badge styling
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: string): string => {
     switch (status?.toLowerCase()) {
       case 'published':
         return 'bg-green-100 text-green-800';
@@ -130,33 +148,33 @@ const MyEventsSection = () => {
     }
   };
 
-  const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  
-  // If the URL already starts with http:// or https://, return as is
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl; // This should work, but there might be an issue here
-  }
-  
-  // The rest of this code shouldn't execute for your case
-  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-  const serverURL = baseURL.replace('/api', '');
-  const cleanImageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-  return `${serverURL}${cleanImageUrl}`;
-};
-
+  const getImageUrl = (imageUrl: string): string | null => {
+    if (!imageUrl) return null;
+    
+    // If the URL already starts with http:// or https://, return as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl; // This should work, but there might be an issue here
+    }
+    
+    // The rest of this code shouldn't execute for your case
+    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const serverURL = baseURL.replace('/api', '');
+    const cleanImageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    return `${serverURL}${cleanImageUrl}`;
+  };
 
   // Event Card Component
-  const EventCard = ({ event }) => (
+  const EventCard = ({ event }: { event: Event }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative h-48 bg-gray-200">
         {event.banner_image ? (
             <img 
-            src={getImageUrl(event.banner_image)}
+            src={getImageUrl(event.banner_image) || undefined}
             alt={event.title}
             className="w-full h-full object-cover"
             onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop';
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop';
             }}
             />
         ) : (
@@ -205,8 +223,8 @@ const MyEventsSection = () => {
         
         <div className="flex items-center justify-between">
           <div className="text-lg font-semibold text-green-600">
-            {event.ticket_price && parseFloat(event.ticket_price) > 0 
-              ? `₦${parseFloat(event.ticket_price).toLocaleString()}`
+            {event.ticket_price && parseFloat(event.ticket_price.toString()) > 0 
+              ? `₦${parseFloat(event.ticket_price.toString()).toLocaleString()}`
               : 'Free'
             }
           </div>
