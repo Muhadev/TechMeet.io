@@ -47,7 +47,7 @@ export async function refreshAccessToken(): Promise<string | null> {
   }
   
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://techmeetio.up.railway.app/api';
     const response = await axios.post(`${apiUrl}/users/token/refresh/`, {
       refresh: refreshToken,
     });

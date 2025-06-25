@@ -27,18 +27,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_cu1i@+54e@%z%w7qj@dp3fy-fli7^3gran8-nhhp*v#n74cjf'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-_cu1i@+54e@%z%w7qj@dp3fy-fli7^3gran8-nhhp*v#n74cjf')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
-# MEDIA_URL = '/banner/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+# FIXED: Proper ALLOWED_HOSTS configuration
+ALLOWED_HOSTS = []
+if os.environ.get('ALLOWED_HOSTS'):
+    ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS').split(',') if host.strip()]
+else:
+    # Default hosts for production
+    ALLOWED_HOSTS = [
+        'techmeetio.up.railway.app',
+        'localhost',
+        '127.0.0.1',
+    ]
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -106,6 +112,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# FIXED: Proper social account providers configuration
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
@@ -116,6 +123,9 @@ SOCIALACCOUNT_PROVIDERS = {
             'profile',
             'email',
         ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
     },
     'github': {
         'APP': {
@@ -129,16 +139,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# # Configure allauth to work with API-only setup
-# SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+# Configure allauth to work with API-only setup
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_QUERY_EMAIL = True
-# SOCIALACCOUNT_STORE_TOKENS = True
-
+SOCIALACCOUNT_STORE_TOKENS = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 ACCOUNT_UNIQUE_EMAIL = True
-
-# Add this to prevent the signup redirect issue
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Disable allauth's default signup flow for API usage
 REST_AUTH_REGISTER_SERIALIZERS = {
@@ -151,20 +157,18 @@ SOCIALACCOUNT_ADAPTER = 'users.api.adapters.SocialAccountAdapter'
 # Site ID (required for django-allauth)
 SITE_ID = 1
 
-# Add these callback URLs for social authentication
-GOOGLE_CALLBACK_URL = 'https://techmeetio.up.railway.app/api/auth/google/callback/'
-GITHUB_CALLBACK_URL = 'https://techmeetio.up.railway.app/api/auth/github/callback/'
-
-# GITHUB_CALLBACK_URL = 'https://yourdomain.com/api/auth/github/callback'  # For production
-
-# GOOGLE_CALLBACK_URL = 'https://yourdomain.com/api/auth/google/callback'  # For production
-
+# FIXED: Proper callback URLs configuration
+BACKEND_URL = os.environ.get('BACKEND_URL', 'https://techmeetio.up.railway.app')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://tech-meet-io.vercel.app')
+
+# Social auth callback URLs
+GOOGLE_CALLBACK_URL = f'{BACKEND_URL}/api/auth/google/callback/'
+GITHUB_CALLBACK_URL = f'{BACKEND_URL}/api/auth/github/callback/'
 
 # Paystack settings
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
 PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
-PAYSTACK_CALLBACK_URL = os.environ.get('PAYSTACK_CALLBACK_URL', 'http://localhost:3000/payment/verify')
+PAYSTACK_CALLBACK_URL = os.environ.get('PAYSTACK_CALLBACK_URL', f'{FRONTEND_URL}/payment/verify')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -198,10 +202,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'mysql.connector.django',
@@ -216,10 +217,7 @@ DATABASES = {
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -235,32 +233,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = False  # Set to True only for development
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://tech-meet-io.vercel.app",
 ]
@@ -269,7 +256,6 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     'https://tech-meet-io.vercel.app',
     'https://techmeetio.up.railway.app'  
-    
 ]
 
 # Allow credentials (cookies, authorization headers)
@@ -302,12 +288,12 @@ CORS_ALLOW_METHODS = [
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
 
-# In production
+# Production security settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

@@ -99,7 +99,7 @@ useEffect(() => {
   const searchTimeout = setTimeout(async () => {
     setIsSearching(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/events/?search=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`https://techmeetio.up.railway.app/api/events/?search=${encodeURIComponent(searchQuery)}`);
       const data = await response.json();
       setSearchResults(data.results || data);
       setShowSearchResults(true);

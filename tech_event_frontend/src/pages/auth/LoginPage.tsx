@@ -45,12 +45,12 @@ const Login = () => {
   };
 
   const loginWithGoogle = () => {
-    const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/auth/google/redirect/`;
+    const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'https://techmeetio.up.railway.app/api'}/auth/google/redirect/`;
     window.location.href = googleAuthUrl;
   };
 
   const loginWithGithub = () => {
-    const githubAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/auth/github/redirect/`;
+    const githubAuthUrl = `${import.meta.env.VITE_API_URL || 'https://techmeetio.up.railway.app/api'}/auth/github/redirect/`;
     window.location.href = githubAuthUrl;
   };
   

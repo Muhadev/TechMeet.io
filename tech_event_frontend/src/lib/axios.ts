@@ -4,7 +4,7 @@ import { getStoredToken, refreshAccessToken, removeToken } from './token';
 
 // Create an Axios instance with default configs
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://techmeetio.up.railway.app/api',
   headers: {
     'Content-Type': 'application/json',
   },

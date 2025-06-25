@@ -70,7 +70,7 @@ const RecentEventsSection = () => {
       return imageUrl;
     }
     
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const baseURL = import.meta.env.VITE_API_URL || 'https://techmeetio.up.railway.app/api';
     const serverURL = baseURL.replace('/api', '');
     const cleanImageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
     return `${serverURL}${cleanImageUrl}`;
