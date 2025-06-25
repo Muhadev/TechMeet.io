@@ -32,8 +32,7 @@ SECRET_KEY = 'django-insecure-_cu1i@+54e@%z%w7qj@dp3fy-fli7^3gran8-nhhp*v#n74cjf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://techmeetio.up.railway.app']
-
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 # MEDIA_URL = '/banner/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -153,8 +152,8 @@ SOCIALACCOUNT_ADAPTER = 'users.api.adapters.SocialAccountAdapter'
 SITE_ID = 1
 
 # Add these callback URLs for social authentication
-GOOGLE_CALLBACK_URL = 'http://localhost:8000/api/auth/google/callback/'
-GITHUB_CALLBACK_URL = 'http://localhost:8000/api/auth/github/callback/'
+GOOGLE_CALLBACK_URL = 'https://techmeetio.up.railway.app/api/auth/google/callback/'
+GITHUB_CALLBACK_URL = 'https://techmeetio.up.railway.app/api/auth/github/callback/'
 
 # GITHUB_CALLBACK_URL = 'https://yourdomain.com/api/auth/github/callback'  # For production
 
@@ -269,7 +268,7 @@ CORS_ALLOWED_ORIGINS = [
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
     'https://tech-meet-io.vercel.app',
-    'https://techmeetio.up.railway.app/'  
+    'https://techmeetio.up.railway.app'  
     
 ]
 
