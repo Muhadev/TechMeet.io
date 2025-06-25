@@ -291,9 +291,13 @@ X_FRAME_OPTIONS = 'DENY'
 
 # Production security settings
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # SECURE_SSL_REDIRECT = True  # <-- REMOVE THIS LINE for Railway deployment
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    
+    # Add these for proper proxy handling on Railway
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
