@@ -7,7 +7,6 @@ defusedxml==0.8.0rc2
 dj-rest-auth==7.0.1
 Django==4.2.20
 django-allauth==65.4.1
-sendgrid-django
 django-cors-headers==4.7.0
 django-filter==25.1
 djangorestframework==3.15.2

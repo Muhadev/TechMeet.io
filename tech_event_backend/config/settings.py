@@ -102,7 +102,7 @@ SIMPLE_JWT = {
 }
 
 # SendGrid settings
-EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 
