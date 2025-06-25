@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-_cu1i@+54e@%z%w7qj@dp3fy-fli7^3gran8-nhhp*v#n74cjf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://techmeetio.up.railway.app']
 
 # MEDIA_URL = '/banner/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -160,7 +160,7 @@ GITHUB_CALLBACK_URL = 'http://localhost:8000/api/auth/github/callback/'
 
 # GOOGLE_CALLBACK_URL = 'https://yourdomain.com/api/auth/google/callback'  # For production
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://tech-meet-io.vercel.app')
 
 # Paystack settings
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
@@ -263,18 +263,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False  # Set to True only for development
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://techmeet.io",    # Production frontend
-    # Add any other frontend URLs you need
+    "https://tech-meet-io.vercel.app",
 ]
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',  # Your frontend URL
-    'http://127.0.0.1:5173',
-    'http://localhost:8000',  # Your backend URL
-    'http://127.0.0.1:8000',
+    'https://tech-meet-io.vercel.app',
+    'https://techmeetio.up.railway.app/'  
+    
 ]
 
 # Allow credentials (cookies, authorization headers)
