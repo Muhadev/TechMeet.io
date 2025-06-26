@@ -15,7 +15,7 @@ import Navigation from '@/components/Navigation';
 // Define the registration form schema
 const registerSchema = z.object({
   first_name: z.string().min(1, { message: 'First name is required' }),
-  last_name: z.string().min(1, { message: 'Last name is required' }),
+  last_name: z.string().min(1, { message: 'Last name is required'   }),
   username: z.string().min(3, { message: 'Username must be at least 3 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string()
