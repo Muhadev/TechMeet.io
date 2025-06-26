@@ -15,7 +15,10 @@ import os
 from datetime import timedelta
 import dj_database_url
 
-from dotenv import load_dotenv  # Add this line
+from dotenv import load_dotenv
+
+import pymysql
+pymysql.install_as_MySQLdb() 
 
 # Load environment variables from .env file
 load_dotenv()  # Add this line
