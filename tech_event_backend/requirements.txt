@@ -4,6 +4,7 @@ cffi==1.17.1
 charset-normalizer==3.4.1
 cryptography==44.0.2
 defusedxml==0.8.0rc2
+dj-database-url==3.0.0
 dj-rest-auth==7.0.1
 Django==4.2.20
 django-allauth==65.4.1
