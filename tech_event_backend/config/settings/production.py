@@ -135,6 +135,10 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-forwarded-for',
+    'x-forwarded-proto',
+    'cache-control',
+    'pragma',
 ]
 
 # Allow these HTTP methods
@@ -146,6 +150,9 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+# Add preflight max age
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # Security settings for production
 SECURE_BROWSER_XSS_FILTER = True

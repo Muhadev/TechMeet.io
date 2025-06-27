@@ -8,18 +8,33 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 second timeout
-  withCredentials: true, // Important for CORS with cookies/sessions
+  timeout: 30000, // 10 second timeout
+  // withCredentials: true, // Important for CORS with cookies/sessions
 });
 
 // Request interceptor for adding auth token
 api.interceptors.request.use(
   async (config) => {
-    // Ensure we have a valid token before making the request
-    const token = await ensureValidToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Skip token handling for auth endpoints
+    const authEndpoints = ['/auth/register/', '/auth/token/'];
+    const isAuthEndpoint = authEndpoints.some(endpoint => 
+      config.url?.includes(endpoint)
+    );
+    
+    if (!isAuthEndpoint) {
+      // Only ensure valid token for non-auth endpoints
+      const token = await ensureValidToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } else {
+      // For auth endpoints, just use stored token if available
+      const token = getStoredToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+    
     return config;
   },
   (error) => Promise.reject(error)
