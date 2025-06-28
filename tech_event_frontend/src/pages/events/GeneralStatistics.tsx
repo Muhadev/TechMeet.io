@@ -90,15 +90,20 @@ const GeneralStatistics: React.FC = () => {
     const fetchGeneralStatistics = async (): Promise<void> => {
       try {
         setLoading(true);
+        setError(null);
         
         // Fetch user's events to calculate general stats
         const eventsResponse = await api.get('/events/');
         let eventsData = [];
         
-        if (eventsResponse.data.results) {
+        // Handle different response structures
+        if (eventsResponse.data && eventsResponse.data.results) {
           eventsData = eventsResponse.data.results;
         } else if (Array.isArray(eventsResponse.data)) {
           eventsData = eventsResponse.data;
+        } else {
+          console.warn('Unexpected events data structure:', eventsResponse.data);
+          eventsData = [];
         }
 
         // Calculate general statistics
@@ -107,19 +112,27 @@ const GeneralStatistics: React.FC = () => {
           event.status === 'PUBLISHED'
         ).length;
 
-        // Set statistics with calculated or default values
+        // For now, set tickets and revenue to 0 as these need separate API calls
+        // You can enhance this later to fetch ticket data if needed
         setStatistics({
           total_events: totalEvents,
           published_events: publishedEvents,
-          total_tickets_sold: 0, // This would need a separate API call
-          total_attendees: 0,    // This would need a separate API call
-          total_revenue: 0       // This would need a separate API call
+          total_tickets_sold: 0,
+          total_attendees: 0,
+          total_revenue: 0
         });
         
-        setError(null);
       } catch (err: any) {
         console.error('Error fetching general statistics:', err);
-        setError('Failed to load statistics');
+        
+        // Set error message based on error type
+        if (err.response?.status === 401) {
+          setError('Please log in to view statistics');
+        } else if (err.response?.status === 403) {
+          setError('You do not have permission to view this data');
+        } else {
+          setError('Failed to load statistics. Please try again.');
+        }
         
         // Set default statistics on error
         setStatistics({
@@ -139,8 +152,17 @@ const GeneralStatistics: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <p className="text-red-600 text-sm">{error}</p>
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-yellow-700">{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -152,7 +174,7 @@ const GeneralStatistics: React.FC = () => {
         icon={Calendar}
         title="Total Events"
         value={statistics?.total_events ?? 0}
-        subtitle="Events created"
+        subtitle={statistics?.total_events === 1 ? "Event created" : "Events created"}
         color="blue"
         loading={loading}
       />
