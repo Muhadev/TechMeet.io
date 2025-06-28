@@ -200,6 +200,8 @@ class GoogleCallbackView(APIView):
         code = request.GET.get('code')
         error = request.GET.get('error')
         
+        print(f"Google callback received - Code: {code[:20] if code else None}, Error: {error}")
+        
         if error:
             redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=access_denied"
             return HttpResponseRedirect(redirect_url)
@@ -214,6 +216,7 @@ class GoogleCallbackView(APIView):
             client_id = app.client_id
             client_secret = app.secret
         except SocialApp.DoesNotExist:
+            print("ERROR: Google SocialApp not found in database")
             redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=config_error"
             return HttpResponseRedirect(redirect_url)
             
@@ -228,17 +231,29 @@ class GoogleCallbackView(APIView):
         }
         
         try:
+            print(f"Exchanging code for token with redirect_uri: {settings.GOOGLE_CALLBACK_URL}")
             response = requests.post(token_url, data=data)
+            
             if response.status_code != 200:
+                print(f"Token exchange failed: {response.status_code} - {response.text}")
                 redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=token_exchange_failed"
                 return HttpResponseRedirect(redirect_url)
                 
             # Redirect to frontend with the access token
             token_data = response.json()
             access_token = token_data.get('access_token')
+            
+            if not access_token:
+                print(f"No access token in response: {token_data}")
+                redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=no_access_token"
+                return HttpResponseRedirect(redirect_url)
+                
+            print(f"Successfully obtained access token, redirecting to frontend")
             redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?access_token={access_token}"
             return HttpResponseRedirect(redirect_url)
+            
         except Exception as e:
+            print(f"Exception during token exchange: {str(e)}")
             redirect_url = f"{settings.FRONTEND_URL}/auth/google/callback?error=server_error"
             return HttpResponseRedirect(redirect_url)
 
@@ -248,6 +263,8 @@ class GithubCallbackView(APIView):
     def get(self, request):
         code = request.GET.get('code')
         error = request.GET.get('error')
+        
+        print(f"GitHub callback received - Code: {code[:20] if code else None}, Error: {error}")
         
         if error:
             redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=access_denied"
@@ -263,6 +280,7 @@ class GithubCallbackView(APIView):
             client_id = app.client_id
             client_secret = app.secret
         except SocialApp.DoesNotExist:
+            print("ERROR: GitHub SocialApp not found in database")
             redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=config_error"
             return HttpResponseRedirect(redirect_url)
             
@@ -277,17 +295,29 @@ class GithubCallbackView(APIView):
         headers = {'Accept': 'application/json'}
         
         try:
+            print(f"Exchanging code for token with redirect_uri: {settings.GITHUB_CALLBACK_URL}")
             response = requests.post(token_url, data=data, headers=headers)
+            
             if response.status_code != 200:
+                print(f"Token exchange failed: {response.status_code} - {response.text}")
                 redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=token_exchange_failed"
                 return HttpResponseRedirect(redirect_url)
                 
             # Redirect to frontend with the access token
             token_data = response.json()
             access_token = token_data.get('access_token')
+            
+            if not access_token:
+                print(f"No access token in response: {token_data}")
+                redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=no_access_token"
+                return HttpResponseRedirect(redirect_url)
+                
+            print(f"Successfully obtained access token, redirecting to frontend")
             redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?access_token={access_token}"
             return HttpResponseRedirect(redirect_url)
+            
         except Exception as e:
+            print(f"Exception during token exchange: {str(e)}")
             redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=server_error"
             return HttpResponseRedirect(redirect_url)
 
