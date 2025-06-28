@@ -40,24 +40,62 @@ const RecentEventsSection = () => {
 
   // Fetch recent events from API
   useEffect(() => {
-    const fetchRecentEvents = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get('/events/');
-        // Sort by created_at and get only the 3 most recent
-        const sortedEvents = response.data.sort((a: Event, b: Event) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        setRecentEvents(sortedEvents.slice(0, 3));
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching recent events:', err);
-        setError('Failed to load recent events. Please try again.');
-      } finally {
-        setLoading(false);
+  const fetchRecentEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/events/');
+      
+      // Handle different response structures more carefully
+      let eventsData = [];
+      
+      if (response.data && typeof response.data === 'object') {
+        if (response.data.results && Array.isArray(response.data.results)) {
+          // Paginated response
+          eventsData = response.data.results;
+        } else if (Array.isArray(response.data)) {
+          // Direct array response
+          eventsData = response.data;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          // Nested data response
+          eventsData = response.data.data;
+        } else {
+          // Single object or unexpected structure
+          console.warn('Unexpected API response structure:', response.data);
+          eventsData = [];
+        }
+      } else {
+        console.warn('Invalid response data:', response.data);
+        eventsData = [];
       }
-    };
-
+      
+      // Ensure we have an array and it's not empty before sorting
+      if (Array.isArray(eventsData) && eventsData.length > 0) {
+        try {
+          // Sort by created_at and get only the 3 most recent
+          const sortedEvents = eventsData
+            .filter(event => event && event.created_at) // Filter out invalid events
+            .sort((a: Event, b: Event) => 
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+          setRecentEvents(sortedEvents.slice(0, 3));
+        } catch (sortError) {
+          console.error('Error sorting events:', sortError);
+          // If sorting fails, just take the first 3 events
+          setRecentEvents(eventsData.slice(0, 3));
+        }
+      } else {
+        setRecentEvents([]);
+      }
+      
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching recent events:', err);
+      setError('Failed to load recent events. Please try again.');
+      setRecentEvents([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
     fetchRecentEvents();
   }, []);
 

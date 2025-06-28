@@ -4,7 +4,8 @@ import MyEventsSection from './events/MyEventsSection';
 import RecentEventsSection from './events/RecentEventsSection';
 import AttendeesSection from './events/AttendeesSection';
 import AnalyticsSection from './events/AnalyticsSection';
-import EventStatistics from '../pages/EventStatistics';
+// import EventStatistics from '../pages/EventStatistics';
+import GeneralStatistics from './events/GeneralStatistics';
 import { useNavigate } from 'react-router-dom';
 
 import { 
@@ -88,6 +89,36 @@ const Dashboard = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const navigate = useNavigate();
 
+  const recentTickets: Ticket[] = [
+  {
+    id: 1,
+    eventTitle: "Tech Conference 2025",
+    attendeeName: "John Doe",
+    ticketType: "General Admission",
+    purchaseDate: "2025-06-25",
+    amount: 15000,
+    status: "confirmed"
+  },
+  {
+    id: 2,
+    eventTitle: "Flutter Meetup",
+    attendeeName: "Jane Smith",
+    ticketType: "VIP",
+    purchaseDate: "2025-06-24",
+    amount: 25000,
+    status: "pending"
+  },
+  {
+    id: 3,
+    eventTitle: "Startup Pitch",
+    attendeeName: "Mike Johnson",
+    ticketType: "Standard",
+    purchaseDate: "2025-06-23",
+    amount: 10000,
+    status: "confirmed"
+  }
+];
+
   // Search handler with debouncing
 useEffect(() => {
   if (!searchQuery.trim()) {
@@ -134,229 +165,6 @@ useEffect(() => {
   
   return () => window.removeEventListener('resize', checkMobile);
 }, []);
-
-  const organizerEvents: Event[] = [
-    {
-      id: 1,
-      title: "React Native Conference 2025",
-      date: "2025-07-15",
-      time: "09:00 AM",
-      location: "Lagos Tech Hub",
-      attendees: 250,
-      capacity: 300,
-      revenue: 25000,
-      status: "published",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop"
-    },
-    {
-      id: 2,
-      title: "AI & Machine Learning Summit",
-      date: "2025-08-22",
-      time: "10:00 AM", 
-      location: "Abuja Innovation Center",
-      attendees: 180,
-      capacity: 200,
-      revenue: 36000,
-      status: "published",
-      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=200&fit=crop"
-    },
-    {
-      id: 3,
-      title: "DevOps Workshop Series",
-      date: "2025-09-10",
-      time: "02:00 PM",
-      location: "Virtual Event",
-      attendees: 95,
-      capacity: 150,
-      revenue: 14250,
-      status: "draft",
-      image: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=200&fit=crop"
-    }
-  ];
-
-  const attendeeEvents: Event[] = [
-    {
-      id: 1,
-      title: "React Native Conference 2025",
-      date: "2025-07-15",
-      time: "09:00 AM",
-      location: "Lagos Tech Hub",
-      ticketType: "VIP",
-      price: 15000,
-      status: "confirmed",
-      organizer: "Tech Lagos",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop"
-    },
-    {
-      id: 2,
-      title: "AI & Machine Learning Summit",
-      date: "2025-08-22",
-      time: "10:00 AM",
-      location: "Abuja Innovation Center",
-      ticketType: "Regular",
-      price: 8000,
-      status: "confirmed",
-      organizer: "AI Nigeria",
-      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=200&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Python Workshop",
-      date: "2025-06-25",
-      time: "03:00 PM",
-      location: "Virtual Event",
-      ticketType: "Free",
-      price: 0,
-      status: "completed",
-      organizer: "CodeCamp NG",
-      image: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=200&fit=crop"
-    }
-  ];
-
-  const recentTickets: Ticket[] = [
-    {
-      id: 1,
-      eventTitle: "React Native Conference 2025",
-      attendeeName: "John Doe",
-      ticketType: "VIP",
-      purchaseDate: "2025-06-10",
-      amount: 15000,
-      status: "confirmed"
-    },
-    {
-      id: 2,
-      eventTitle: "AI & Machine Learning Summit", 
-      attendeeName: "Jane Smith",
-      ticketType: "Regular",
-      purchaseDate: "2025-06-12",
-      amount: 8000,
-      status: "confirmed"
-    },
-    {
-      id: 3,
-      eventTitle: "DevOps Workshop Series",
-      attendeeName: "Mike Johnson",
-      ticketType: "Student",
-      purchaseDate: "2025-06-14",
-      amount: 5000,
-      status: "pending"
-    }
-  ];
-
-  const OrganizerEventCard = ({ event }: { event: Event }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="relative h-48 bg-gray-200">
-        <img 
-          src={event.image} 
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-3 right-3">
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            event.status === 'published' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-          </span>
-        </div>
-      </div>
-      <div className="p-6">
-        <h3 className="font-semibold text-lg text-gray-900 mb-2">{event.title}</h3>
-        <div className="space-y-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center">
-            <Calendar className="w-4 h-4 mr-2" />
-            {event.date} at {event.time}
-          </div>
-          <div className="flex items-center">
-            <MapPin className="w-4 h-4 mr-2" />
-            {event.location}
-          </div>
-          <div className="flex items-center">
-            <Users className="w-4 h-4 mr-2" />
-            {event.attendees}/{event.capacity} attendees
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="text-lg font-semibold text-green-600">
-            ₦{event.revenue?.toLocaleString() || '0'}
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
-              <Eye className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
-              <Edit className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const AttendeeEventCard = ({ event }: { event: Event }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="relative h-48 bg-gray-200">
-        <img 
-          src={event.image} 
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-3 right-3">
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            event.status === 'confirmed' 
-              ? 'bg-green-100 text-green-800' 
-              : event.status === 'completed'
-              ? 'bg-blue-100 text-blue-800'
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-          </span>
-        </div>
-        <div className="absolute top-3 left-3">
-          <div className="bg-white/90 backdrop-blur px-2 py-1 rounded-full text-xs font-medium">
-            {event.ticketType}
-          </div>
-        </div>
-      </div>
-      <div className="p-6">
-        <h3 className="font-semibold text-lg text-gray-900 mb-2">{event.title}</h3>
-        <div className="space-y-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center">
-            <Calendar className="w-4 h-4 mr-2" />
-            {event.date} at {event.time}
-          </div>
-          <div className="flex items-center">
-            <MapPin className="w-4 h-4 mr-2" />
-            {event.location}
-          </div>
-          <div className="flex items-center">
-            <Users className="w-4 h-4 mr-2" />
-            Organized by {event.organizer}
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="text-lg font-semibold text-blue-600">
-            {(event.price && event.price > 0) ? `₦${event.price.toLocaleString()}` : 'Free'}
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-50">
-              <QrCode className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-50">
-              <Heart className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
-              <Share2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   const TicketRow = ({ ticket }: { ticket: Ticket }) => (
     <tr className="border-b border-gray-100 hover:bg-gray-50">
@@ -705,38 +513,37 @@ const formatRole = (role?: string): string => {
         isMobile ? 'ml-16' : 'ml-64'
         } overflow-y-auto h-[calc(100vh-4rem)]`}>
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* Page Header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
-                  <p className="text-gray-600 mt-1">
-                    {userRole === 'organizer' 
-                      ? "Welcome back! Here's what's happening with your events." 
-                      : "Welcome back! Here's your event activity."}
-                  </p>
-                </div>
-                {userRole === 'organizer' ? (
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
-                    <Plus className="w-4 h-4" />
-                    <span><a href="events/create-event">Create Event</a></span>
-                  </button>
-                ) : (
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
-                    <Search className="w-4 h-4" />
-                    <span>Discover Events</span>
-                  </button>
-                )}
+          <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
+                <p className="text-gray-600 mt-1">
+                  {userRole === 'organizer' 
+                    ? "Welcome back! Here's what's happening with your events." 
+                    : "Welcome back! Here's your event activity."}
+                </p>
               </div>
-
-              {/* Stats Grid */}
-              <EventStatistics eventId={4} />
-
-              {/* Recent Events */}
-              <RecentEventsSection/>
+              {userRole === 'organizer' ? (
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                  <Plus className="w-4 h-4" />
+                  <span><a href="events/create-event">Create Event</a></span>
+                </button>
+              ) : (
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
+                  <Search className="w-4 h-4" />
+                  <span>Discover Events</span>
+                </button>
+              )}
             </div>
-          )}
 
+            {/* General Stats Grid - Don't hardcode specific event */}
+            {userRole === 'organizer' && <GeneralStatistics />}
+
+            {/* Recent Events */}
+            <RecentEventsSection/>
+          </div>
+        )}
           {activeTab === 'events' && <MyEventsSection />}
           
           {activeTab === 'tickets' && (

@@ -79,18 +79,44 @@ const EventStatistics: React.FC<EventStatisticsProps> = ({ eventId }) => {
 
   useEffect(() => {
     const fetchStatistics = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const response = await api.get<EventStatistics>(`/events/${eventId}/statistics/`);
-        setStatistics(response.data);
-        setError(null); // Clear any previous errors
-      } catch (err) {
-        console.error('Error fetching event statistics:', err);
-        setError('Failed to load statistics');
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      
+      // Check if eventId exists before making the request
+      if (!eventId) {
+        setError('No event ID provided');
+        return;
       }
-    };
+      
+      const response = await api.get<EventStatistics>(`/events/${eventId}/statistics/`);
+      setStatistics(response.data);
+      setError(null); // Clear any previous errors
+    } catch (err: any) {
+      console.error('Error fetching event statistics:', err);
+      
+      // Handle different error types
+      if (err.response?.status === 404) {
+        setError('Event not found or statistics not available');
+      } else if (err.response?.status === 403) {
+        setError('You do not have permission to view these statistics');
+      } else if (err.response?.status === 401) {
+        setError('Please log in to view statistics');
+      } else {
+        setError('Failed to load statistics');
+      }
+      
+      // Set default statistics for error state
+      setStatistics({
+        total_tickets: 0,
+        sold_tickets: 0,
+        checked_in: 0,
+        occupancy_rate: 0,
+        ticket_types: []
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
     if (eventId) {
       fetchStatistics();

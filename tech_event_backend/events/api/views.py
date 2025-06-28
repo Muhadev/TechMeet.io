@@ -203,7 +203,13 @@ class EventViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def statistics(self, request, pk=None):
         """Get statistics for an event"""
-        event = self.get_object()
+        try:
+            event = self.get_object()
+        except Event.DoesNotExist:
+            return Response(
+                {"error": "Event not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Check permissions
         if not request.user.is_authenticated:
@@ -213,13 +219,13 @@ class EventViewSet(viewsets.ModelViewSet):
             )
         
         if request.user.role not in ['ADMIN', 'ORGANIZER'] or \
-           (request.user.role == 'ORGANIZER' and event.organizer != request.user):
+        (request.user.role == 'ORGANIZER' and event.organizer != request.user):
             return Response(
                 {"error": "You don't have permission to access this information."},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Only show statistics for published events
+        # Return statistics regardless of event status, but with appropriate data
         if event.status != 'PUBLISHED':
             return Response({
                 "message": "Statistics are only available for published events.",
@@ -228,7 +234,7 @@ class EventViewSet(viewsets.ModelViewSet):
                 "checked_in": 0,
                 "available_capacity": event.max_attendees,
                 "ticket_types": [],
-                "occupancy_rate": 0,
+                "occupancy_rate": 0.0,  # Return as float, not integer
             })
             
         total_tickets = Ticket.objects.filter(event=event).count()
@@ -237,16 +243,19 @@ class EventViewSet(viewsets.ModelViewSet):
         
         # Ticket type breakdown
         ticket_types = Ticket.objects.filter(event=event, payment_status='COMPLETED') \
-                             .values('ticket_type') \
-                             .annotate(count=Count('id'))
-                             
+                            .values('ticket_type') \
+                            .annotate(count=Count('id'))
+                            
+        # Calculate occupancy rate as float between 0 and 1
+        occupancy_rate = (sold_tickets / event.max_attendees) if event.max_attendees > 0 else 0.0
+                            
         stats = {
             "total_tickets": total_tickets,
             "sold_tickets": sold_tickets,
             "checked_in": checked_in,
             "available_capacity": max(0, event.max_attendees - sold_tickets),
             "ticket_types": list(ticket_types),
-            "occupancy_rate": (sold_tickets / event.max_attendees * 100) if event.max_attendees > 0 else 0,
+            "occupancy_rate": occupancy_rate,  # This should be float between 0-1
         }
         
         return Response(stats)
