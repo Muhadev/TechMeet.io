@@ -7,8 +7,8 @@ from rest_framework_simplejwt.views import (
 from .views import (
     RegisterView, 
     UserProfileView, 
-    GoogleLogin, 
-    GithubLogin,
+    GoogleLoginAPI,
+    GithubLoginAPI, 
     GoogleAuthRedirectView,
     GithubAuthRedirectView,
     GoogleCallbackView,
@@ -33,8 +33,8 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='profile'),
     
     # Social authentication - REST API endpoints (POST)
-    path('google/', GoogleLogin.as_view(), name='google_login'),
-    path('github/', GithubLogin.as_view(), name='github_login'),
+    path('google/', GoogleLoginAPI.as_view(), name='google_login'),
+    path('github/', GithubLoginAPI.as_view(), name='github_login'),
 
     # Social authentication - Redirect views (GET)
     path('google/redirect/', GoogleAuthRedirectView.as_view(), name='google_auth_redirect'),

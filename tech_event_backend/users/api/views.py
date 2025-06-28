@@ -291,7 +291,7 @@ class GithubCallbackView(APIView):
             redirect_url = f"{settings.FRONTEND_URL}/auth/github/callback?error=server_error"
             return HttpResponseRedirect(redirect_url)
 
-class GoogleLogin(APIView):
+class GoogleLoginAPI(APIView):
     permission_classes = []
     
     def post(self, request):
@@ -355,7 +355,7 @@ class GoogleLogin(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class GithubLogin(APIView):
+class GithubLoginAPI(APIView):
     permission_classes = []
     
     def post(self, request):
@@ -428,7 +428,7 @@ class GithubLogin(APIView):
             
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+     
 # users/api/views.py
 @csrf_exempt
 @api_view(['POST'])

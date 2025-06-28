@@ -24,7 +24,8 @@ export default function AuthCallback() {
         console.log('Callback URL params:', {
           accessToken: accessToken ? `${accessToken.substring(0, 20)}...` : null,
           error: errorParam,
-          fullUrl: window.location.href
+          fullUrl: window.location.href,
+          pathname: location.pathname
         });
         
         // Check for error parameter first
@@ -61,9 +62,9 @@ export default function AuthCallback() {
           return;
         }
 
-        console.log(`Processing ${provider} authentication...`);
+        console.log(`Processing ${provider} authentication with token...`);
 
-        // Call socialLogin from context
+        // Call socialLogin from context - this will make POST request to /api/auth/{provider}/
         await socialLogin(provider, accessToken);
         
         console.log('Social login successful, navigating to dashboard');
@@ -73,7 +74,9 @@ export default function AuthCallback() {
         console.error('Social login error:', err);
         let errorMessage = 'Failed to authenticate with social provider';
         
-        if (err.response?.data?.detail) {
+        if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.response?.data?.detail) {
           errorMessage = err.response.data.detail;
         } else if (err.response?.data?.non_field_errors) {
           errorMessage = err.response.data.non_field_errors[0];
