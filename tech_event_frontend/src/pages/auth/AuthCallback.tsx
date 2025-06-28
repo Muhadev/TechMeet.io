@@ -1,4 +1,4 @@
-// src/pages/auth/AuthCallback.tsx
+// src/pages/auth/AuthCallback.tsx - Enhanced with debugging
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ export default function AuthCallback() {
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const processCallback = async () => {
@@ -21,12 +22,18 @@ export default function AuthCallback() {
         const accessToken = params.get('access_token');
         const errorParam = params.get('error');
         
-        console.log('Callback URL params:', {
+        // Enhanced debugging
+        const debugData = {
           accessToken: accessToken ? `${accessToken.substring(0, 20)}...` : null,
           error: errorParam,
           fullUrl: window.location.href,
-          pathname: location.pathname
-        });
+          pathname: location.pathname,
+          search: location.search,
+          allParams: Object.fromEntries(params.entries())
+        };
+        
+        console.log('Enhanced Callback debugging:', debugData);
+        setDebugInfo(debugData);
         
         // Check for error parameter first
         if (errorParam) {
@@ -102,6 +109,17 @@ export default function AuthCallback() {
                 {error}
               </AlertDescription>
             </Alert>
+            
+            {/* Debug info in development */}
+            {import.meta.env.DEV && debugInfo && (
+              <details className="mb-4 text-xs">
+                <summary>Debug Info (Dev Only)</summary>
+                <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </details>
+            )}
+            
             <div className="flex gap-2">
               <Button 
                 onClick={() => navigate('/login')}
@@ -130,6 +148,16 @@ export default function AuthCallback() {
           <CardContent className="p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Completing authentication...</p>
+            
+            {/* Debug info in development */}
+            {import.meta.env.DEV && debugInfo && (
+              <details className="mt-4 text-xs">
+                <summary>Debug Info (Dev Only)</summary>
+                <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </details>
+            )}
           </CardContent>
         </Card>
       </div>

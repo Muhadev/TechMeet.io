@@ -102,6 +102,7 @@ if not all([GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET]):
 # URL configuration
 BACKEND_URL = os.environ.get('BACKEND_URL', 'https://techmeetio.up.railway.app/api')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://tech-meet-io.vercel.app')
+API_BASE_URL = os.environ.get('API_BASE_URL', 'https://techmeetio.up.railway.app/api')
 
 # Social auth callback URLs
 GOOGLE_CALLBACK_URL = f"{os.environ.get('API_BASE_URL', 'https://techmeetio.up.railway.app/api')}/auth/google/callback/"

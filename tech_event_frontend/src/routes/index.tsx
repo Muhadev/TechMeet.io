@@ -27,7 +27,7 @@ export function Routes() {
       <Route path="/events/create-event" element={<CreateEventPage />} />
       <Route path="/events/success" element={<EventSuccessPage />} />
       
-      {/* Auth callback routes - MUST come before conditional auth routes */}
+      {/* Auth callback routes - Fixed paths */}
       <Route path="/auth/google/callback" element={<AuthCallback />} />
       <Route path="/auth/github/callback" element={<AuthCallback />} />
       
@@ -46,7 +46,7 @@ export function Routes() {
       {/* Protected routes */}
       <Route 
         path="/dashboard" 
-        element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />} 
+        element={isAuthenticated ? <DashboardPage /> : <Navigate to="/dashboard" />} 
       />
       <Route 
         path="/settings" 
@@ -56,6 +56,9 @@ export function Routes() {
         path="/events/:id" 
         element={<EventDetailPage />} 
       />
+      
+      {/* Catch-all redirect to home for unknown routes */}
+      <Route path="*" element={<Navigate to="/" />} />
     </RouterRoutes>
   );
 }
