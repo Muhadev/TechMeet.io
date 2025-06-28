@@ -87,13 +87,25 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET')
+
+# Add validation warnings
+if not all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET]):
+    print("WARNING: Google OAuth credentials not configured")
+    
+if not all([GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET]):
+    print("WARNING: GitHub OAuth credentials not configured")
+
 # URL configuration
-BACKEND_URL = os.environ.get('BACKEND_URL', 'https://techmeetio.up.railway.app')
+BACKEND_URL = os.environ.get('BACKEND_URL', 'https://techmeetio.up.railway.app/api')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://tech-meet-io.vercel.app')
 
 # Social auth callback URLs
-GOOGLE_CALLBACK_URL = f'{BACKEND_URL}/api/auth/google/callback/'
-GITHUB_CALLBACK_URL = f'{BACKEND_URL}/api/auth/github/callback/'
+GOOGLE_CALLBACK_URL = f"{os.environ.get('API_BASE_URL', 'https://techmeetio.up.railway.app/api')}/auth/google/callback/"
+GITHUB_CALLBACK_URL = f"{os.environ.get('API_BASE_URL', 'https://techmeetio.up.railway.app/api')}/auth/github/callback/"
 
 # Paystack settings
 PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
