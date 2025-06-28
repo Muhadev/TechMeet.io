@@ -92,34 +92,62 @@ const GeneralStatistics: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // Fetch user's events to calculate general stats
-        const eventsResponse = await api.get('/events/');
+        // Fetch user's events and tickets in parallel
+        const [eventsResponse, ticketsResponse] = await Promise.allSettled([
+          api.get('/events/my_events/'),
+          api.get('/tickets/my_tickets/')
+        ]);
+
         let eventsData = [];
-        
-        // Handle different response structures
-        if (eventsResponse.data && eventsResponse.data.results) {
-          eventsData = eventsResponse.data.results;
-        } else if (Array.isArray(eventsResponse.data)) {
-          eventsData = eventsResponse.data;
-        } else {
-          console.warn('Unexpected events data structure:', eventsResponse.data);
-          eventsData = [];
+        let ticketsData = [];
+
+        // Handle events response
+        if (eventsResponse.status === 'fulfilled') {
+          const response = eventsResponse.value;
+          if (response.data && Array.isArray(response.data)) {
+            eventsData = response.data;
+          } else if (response.data && response.data.results) {
+            eventsData = response.data.results;
+          }
         }
 
-        // Calculate general statistics
+        // Handle tickets response
+        if (ticketsResponse.status === 'fulfilled') {
+          const response = ticketsResponse.value;
+          if (response.data && Array.isArray(response.data)) {
+            ticketsData = response.data;
+          } else if (response.data && response.data.results) {
+            ticketsData = response.data.results;
+          }
+        }
+
+        // Calculate statistics
         const totalEvents = eventsData.length;
         const publishedEvents = eventsData.filter((event: any) => 
           event.status === 'PUBLISHED'
         ).length;
 
-        // For now, set tickets and revenue to 0 as these need separate API calls
-        // You can enhance this later to fetch ticket data if needed
+        // Calculate ticket statistics
+        const completedTickets = ticketsData.filter((ticket: any) => 
+          ticket.payment_status === 'COMPLETED'
+        );
+        
+        const totalTicketsSold = completedTickets.length;
+        const totalAttendees = completedTickets.filter((ticket: any) => 
+          ticket.checked_in === true
+        ).length;
+
+        // Calculate total revenue from completed tickets
+        const totalRevenue = completedTickets.reduce((sum: number, ticket: any) => {
+          return sum + (parseFloat(ticket.price_paid) || 0);
+        }, 0);
+
         setStatistics({
           total_events: totalEvents,
           published_events: publishedEvents,
-          total_tickets_sold: 0,
-          total_attendees: 0,
-          total_revenue: 0
+          total_tickets_sold: totalTicketsSold,
+          total_attendees: totalAttendees,
+          total_revenue: totalRevenue
         });
         
       } catch (err: any) {
@@ -194,7 +222,7 @@ const GeneralStatistics: React.FC = () => {
         icon={Ticket}
         title="Tickets Sold"
         value={statistics?.total_tickets_sold ?? 0}
-        subtitle="Across all events"
+        subtitle="Completed purchases"
         color="purple"
         loading={loading}
       />
@@ -202,9 +230,9 @@ const GeneralStatistics: React.FC = () => {
       {/* Total Attendees */}
       <StatCard
         icon={Users}
-        title="Total Attendees"
+        title="Attendees"
         value={statistics?.total_attendees ?? 0}
-        subtitle="Registered attendees"
+        subtitle="Checked-in attendees"
         color="indigo"
         loading={loading}
       />
@@ -213,7 +241,10 @@ const GeneralStatistics: React.FC = () => {
       <StatCard
         icon={TrendingUp}
         title="Revenue"
-        value={`₦${(statistics?.total_revenue ?? 0).toLocaleString()}`}
+        value={`₦${(statistics?.total_revenue ?? 0).toLocaleString('en-NG', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}`}
         subtitle="Total earnings"
         color="orange"
         loading={loading}
