@@ -61,13 +61,15 @@ const OrganizerOverview: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch organizer statistics using your axios configuration
+      // Fetch organizer statistics - corrected endpoint
       const statsResponse = await api.get('/auth/organizer/statistics/');
       setStats(statsResponse.data);
 
-      // Fetch recent events
+      // Fetch recent events - corrected endpoint
       const eventsResponse = await api.get('/auth/organizer/dashboard-summary/');
-      setRecentEvents(eventsResponse.data.recent_events || []);
+      // Ensure recent_events is always an array
+      const recentEventsData = eventsResponse.data.recent_events || [];
+      setRecentEvents(Array.isArray(recentEventsData) ? recentEventsData : []);
 
     } catch (err: any) {
       console.error('Error fetching organizer data:', err);
@@ -86,7 +88,6 @@ const OrganizerOverview: React.FC = () => {
       setLoading(false);
     }
   };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -313,7 +314,7 @@ const OrganizerOverview: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {recentEvents.length > 0 ? (
+              {recentEvents && recentEvents.length > 0 ? (
                 recentEvents.map((event) => (
                   <tr key={event.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
