@@ -21,6 +21,16 @@ from .views import (
     list_organizer_requests,
     approve_organizer_request,
     reject_organizer_request,
+    organizer_analytics,
+    attendee_statistics,
+    attendee_ticket_history,
+    attendee_upcoming_events,
+    attendee_dashboard_summary,
+    organizer_attendees,
+    organizer_attendee_stats,
+    organizer_events_list,
+    check_in_attendee,
+    bulk_email_attendees,
 )
 
 urlpatterns = [
@@ -51,6 +61,20 @@ urlpatterns = [
     # OAuth test page
     path('oauth-test/', OAuthTestView.as_view(), name='oauth_test'),
 
+    # Attendee Dashboard Statistics
+    path('attendee/statistics/', attendee_statistics, name='attendee-statistics'),
+    path('attendee/ticket-history/', attendee_ticket_history, name='attendee-ticket-history'),
+    path('attendee/upcoming-events/', attendee_upcoming_events, name='attendee-upcoming-events'),
+    path('attendee/dashboard-summary/', attendee_dashboard_summary, name='attendee-dashboard-summary'),
+
+    # Organizer attendee management
+    path('organizer/analytics/', organizer_analytics, name='organizer-analytics'),
+    path('organizer/attendees/', organizer_attendees, name='organizer-attendees'),
+    path('organizer/attendee-stats/', organizer_attendee_stats, name='organizer-attendee-stats'),
+    path('organizer/events/', organizer_events_list, name='organizer-events-list'),
+    path('organizer/attendees/<int:ticket_id>/check-in/', check_in_attendee, name='check-in-attendee'),
+    path('organizer/attendees/bulk-email/', bulk_email_attendees, name='bulk-email-attendees'),
+    
     path('request-organizer/', request_organizer_role, name='request-organizer'),
     path('organizer-request-status/', organizer_request_status, name='organizer-request-status'),
     

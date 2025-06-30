@@ -164,7 +164,7 @@ class EventViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-    
+    #event/api/views.py
     @action(detail=True, methods=['get'], permission_classes=[IsAdminOrOrganizer])
     def attendees(self, request, pk=None):
         """Get the list of attendees for an event"""
