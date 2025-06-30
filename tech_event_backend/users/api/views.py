@@ -1000,6 +1000,186 @@ def organizer_attendees(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def organizer_statistics(request):
+    """
+    Get comprehensive statistics for organizer dashboard
+    """
+    user = request.user
+    
+    # Check if user is an organizer
+    if user.role not in ['ORGANIZER', 'ADMIN']:
+        return Response(
+            {"error": "You don't have permission to access this information."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Base queryset for user's events
+    if user.role == 'ADMIN':
+        events_queryset = Event.objects.all()
+    else:
+        events_queryset = Event.objects.filter(organizer=user)
+    
+    # Get current date for calculations
+    now = timezone.now()
+    today = now.date()
+    current_month_start = now.replace(day=1)
+    
+    # Total events and active events
+    total_events = events_queryset.count()
+    active_events = events_queryset.filter(
+        status='PUBLISHED',
+        end_date__gt=now
+    ).count()
+    
+    # Get all tickets for organizer's events with completed payments
+    all_tickets = Ticket.objects.filter(
+        event__in=events_queryset,
+        payment_status='COMPLETED'
+    )
+    
+    # Total tickets sold and revenue
+    total_tickets_sold = all_tickets.count()
+    total_revenue = all_tickets.aggregate(
+        total=Sum('event__ticket_price')
+    )['total'] or Decimal('0.00')
+    
+    # Total attendees (unique users who bought tickets)
+    total_attendees = all_tickets.values('user').distinct().count()
+    
+    # Calculate average attendance rate
+    events_with_attendance = []
+    for event in events_queryset.filter(status='PUBLISHED'):
+        event_tickets = all_tickets.filter(event=event)
+        total_event_tickets = event_tickets.count()
+        checked_in_tickets = event_tickets.filter(checked_in=True).count()
+        
+        if total_event_tickets > 0:
+            attendance_rate = (checked_in_tickets / total_event_tickets) * 100
+            events_with_attendance.append(attendance_rate)
+    
+    average_attendance_rate = (
+        sum(events_with_attendance) / len(events_with_attendance)
+        if events_with_attendance else 0
+    )
+    
+    # Recent activity calculations
+    # New registrations today
+    new_registrations_today = all_tickets.filter(
+        created_at__date=today
+    ).count()
+    
+    # Events this month
+    events_this_month = events_queryset.filter(
+        date__gte=current_month_start,
+        date__lt=current_month_start + timedelta(days=32)
+    ).count()
+    
+    # Revenue this month
+    revenue_this_month = all_tickets.filter(
+        created_at__gte=current_month_start
+    ).aggregate(
+        total=Sum('event__ticket_price')
+    )['total'] or Decimal('0.00')
+    
+    # Top performing events (by revenue)
+    top_performing_events = []
+    for event in events_queryset.filter(status='PUBLISHED')[:10]:
+        event_tickets = all_tickets.filter(event=event)
+        tickets_sold = event_tickets.count()
+        event_revenue = event_tickets.aggregate(
+            total=Sum('event__ticket_price')
+        )['total'] or Decimal('0.00')
+        
+        checked_in_count = event_tickets.filter(checked_in=True).count()
+        attendance_rate = (checked_in_count / tickets_sold * 100) if tickets_sold > 0 else 0
+        
+        if tickets_sold > 0:  # Only include events with ticket sales
+            top_performing_events.append({
+                'id': event.id,
+                'title': event.title,
+                'tickets_sold': tickets_sold,
+                'revenue': float(event_revenue),
+                'attendance_rate': round(attendance_rate, 1)
+            })
+    
+    # Sort by revenue and take top 5
+    top_performing_events.sort(key=lambda x: x['revenue'], reverse=True)
+    top_performing_events = top_performing_events[:5]
+    
+    return Response({
+        'overview': {
+            'total_events': total_events,
+            'active_events': active_events,
+            'total_tickets_sold': total_tickets_sold,
+            'total_revenue': float(total_revenue),
+            'total_attendees': total_attendees,
+            'average_attendance_rate': round(average_attendance_rate, 1)
+        },
+        'recent_activity': {
+            'new_registrations_today': new_registrations_today,
+            'events_this_month': events_this_month,
+            'revenue_this_month': float(revenue_this_month)
+        },
+        'top_performing_events': top_performing_events
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def organizer_dashboard_summary(request):
+    """
+    Get recent events for organizer dashboard
+    """
+    user = request.user
+    
+    # Check if user is an organizer
+    if user.role not in ['ORGANIZER', 'ADMIN']:
+        return Response(
+            {"error": "You don't have permission to access this information."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Base queryset for user's events
+    if user.role == 'ADMIN':
+        events_queryset = Event.objects.all()
+    else:
+        events_queryset = Event.objects.filter(organizer=user)
+    
+    # Get recent events (last 10)
+    recent_events = events_queryset.order_by('-created_at')[:10]
+    
+    recent_events_data = []
+    for event in recent_events:
+        # Get tickets for this event
+        event_tickets = Ticket.objects.filter(
+            event=event,
+            payment_status='COMPLETED'
+        )
+        
+        tickets_sold = event_tickets.count()
+        event_revenue = event_tickets.aggregate(
+            total=Sum('event__ticket_price')
+        )['total'] or Decimal('0.00')
+        
+        # Get event capacity (assuming you have a capacity field, otherwise use a default)
+        capacity = getattr(event, 'capacity', 100)  # Default to 100 if no capacity field
+        
+        recent_events_data.append({
+            'id': event.id,
+            'title': event.title,
+            'start_date': event.date.isoformat() if event.date else None,
+            'status': event.status,
+            'tickets_sold': tickets_sold,
+            'capacity': capacity,
+            'revenue': float(event_revenue)
+        })
+    
+    return Response({
+        'recent_events': recent_events_data
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def organizer_attendee_stats(request):
     """
     Get statistics for all attendees across organizer's events

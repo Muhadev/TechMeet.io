@@ -31,6 +31,8 @@ from .views import (
     organizer_events_list,
     check_in_attendee,
     bulk_email_attendees,
+    organizer_statistics,
+    organizer_dashboard_summary,
 )
 
 urlpatterns = [
@@ -69,6 +71,11 @@ urlpatterns = [
 
     # Organizer attendee management
     path('organizer/analytics/', organizer_analytics, name='organizer-analytics'),
+    # Organizer analytics and dashboard
+    # path('organizer/analytics/', organizer_analytics, name='organizer-analytics'),
+    path('organizer/statistics/', organizer_statistics, name='organizer-statistics'),
+    path('organizer/dashboard-summary/', organizer_dashboard_summary, name='organizer-dashboard-summary'),
+    
     path('organizer/attendees/', organizer_attendees, name='organizer-attendees'),
     path('organizer/attendee-stats/', organizer_attendee_stats, name='organizer-attendee-stats'),
     path('organizer/events/', organizer_events_list, name='organizer-events-list'),

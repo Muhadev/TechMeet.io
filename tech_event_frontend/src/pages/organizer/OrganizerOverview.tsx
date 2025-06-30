@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../lib/axios'; // Using your axios configuration
 import { 
   Calendar, 
   Users, 
@@ -57,40 +58,30 @@ const OrganizerOverview: React.FC = () => {
 
   const fetchOrganizerData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
+      setError(null);
       
-      // Fetch organizer statistics
-      const statsResponse = await fetch('/api/events/organizer-statistics/', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!statsResponse.ok) {
-        throw new Error('Failed to fetch organizer statistics');
-      }
-
-      const statsData = await statsResponse.json();
-      setStats(statsData);
+      // Fetch organizer statistics using your axios configuration
+      const statsResponse = await api.get('/auth/organizer/statistics/');
+      setStats(statsResponse.data);
 
       // Fetch recent events
-      const eventsResponse = await fetch('/api/events/organizer-dashboard-summary/', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const eventsResponse = await api.get('/auth/organizer/dashboard-summary/');
+      setRecentEvents(eventsResponse.data.recent_events || []);
 
-      if (!eventsResponse.ok) {
-        throw new Error('Failed to fetch recent events');
+    } catch (err: any) {
+      console.error('Error fetching organizer data:', err);
+      
+      // Handle different types of errors
+      if (err.response?.status === 403) {
+        setError('You do not have permission to access this information.');
+      } else if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError(err.message || 'Failed to load dashboard data. Please try again.');
       }
-
-      const eventsData = await eventsResponse.json();
-      setRecentEvents(eventsData.recent_events || []);
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -104,6 +95,7 @@ const OrganizerOverview: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'No date';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -126,20 +118,33 @@ const OrganizerOverview: React.FC = () => {
     }
   };
 
+  const handleRetry = () => {
+    fetchOrganizerData();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="ml-4 text-gray-600">Loading dashboard data...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex items-center">
-          <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
-          <p className="text-red-700">{error}</p>
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+            <p className="text-red-700">{error}</p>
+          </div>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -150,7 +155,7 @@ const OrganizerOverview: React.FC = () => {
       {/* Welcome Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.first_name}!
+          Welcome back, {user?.first_name || 'Organizer'}!
         </h1>
         <p className="text-gray-600">
           Here's how your events are performing today.
@@ -169,6 +174,9 @@ const OrganizerOverview: React.FC = () => {
                 <p className="text-sm font-medium text-gray-600">Total Events</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.overview.total_events}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {stats.overview.active_events} active
                 </p>
               </div>
             </div>
@@ -211,6 +219,9 @@ const OrganizerOverview: React.FC = () => {
                 <p className="text-sm font-medium text-gray-600">Total Attendees</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.overview.total_attendees}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {stats.overview.average_attendance_rate}% avg attendance
                 </p>
               </div>
             </div>
@@ -265,7 +276,7 @@ const OrganizerOverview: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No events data available</p>
+                <p className="text-gray-500 text-center py-4">No top performing events data available</p>
               )}
             </div>
           </div>
@@ -274,7 +285,12 @@ const OrganizerOverview: React.FC = () => {
 
       {/* Recent Events */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Events</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Recent Events</h3>
+          {recentEvents.length > 0 && (
+            <p className="text-sm text-gray-500">Showing {recentEvents.length} most recent events</p>
+          )}
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -299,7 +315,7 @@ const OrganizerOverview: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {recentEvents.length > 0 ? (
                 recentEvents.map((event) => (
-                  <tr key={event.id}>
+                  <tr key={event.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{event.title}</div>
                     </td>
@@ -315,6 +331,9 @@ const OrganizerOverview: React.FC = () => {
                       <div className="text-sm text-gray-900">
                         {event.tickets_sold} / {event.capacity}
                       </div>
+                      <div className="text-xs text-gray-500">
+                        {event.capacity > 0 ? Math.round((event.tickets_sold / event.capacity) * 100) : 0}% sold
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatCurrency(event.revenue)}</div>
@@ -323,8 +342,10 @@ const OrganizerOverview: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                    No recent events found
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-lg font-medium text-gray-900 mb-2">No events found</p>
+                    <p>You haven't created any events yet. Create your first event to get started!</p>
                   </td>
                 </tr>
               )}
