@@ -125,7 +125,7 @@ const AnalyticsSection: React.FC = () => {
         // Fetch analytics for all events using axios
         const promises = userEvents.map(async (event: Event) => {
           try {
-            const response = await api.get(`/events/${event.id}/statistics/`);
+            const response = await api.get(`/auth/organizer/statistics/`);
             return {
               ...event,
               statistics: response.data
@@ -158,7 +158,7 @@ const AnalyticsSection: React.FC = () => {
 
       } else {
         // Fetch analytics for specific event using axios
-        const response = await api.get(`/events/${selectedEvent}/statistics/`);
+        const response = await api.get(`/auth/organizer/statistics/`);
         const stats: EventStatistics = response.data;
         const event = userEvents.find((e: Event) => e.id.toString() === selectedEvent);
         
